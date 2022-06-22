@@ -1,0 +1,18 @@
+version: '3.7'
+
+services:
+  qstorage:
+    build: .
+
+    volumes:
+      - type: bind
+        source: ./apps/static/
+        target: /qstorage/apps/static/
+      - type: bind
+        source: ./apps/media/
+        target: /qstorage/apps/media/
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - 8000:8000
+

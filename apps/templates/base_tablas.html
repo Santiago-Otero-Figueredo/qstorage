@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% comment %}
+    Al extender del bloque css o js de esta plantilla agregar al principio la etiqueta {{ block.super }}
+    para que se tome el contenido del bloque que se esta sobreescribiendo y se añada al nuevo que se va a definir
+{% endcomment %}
+
+{% block css %}
+    <link href="{% static 'plugins/datatables.net-bs4/css/dataTables.bootstrap4.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'plugins/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'plugins/datatables.net-buttons-bs4/css/buttons.bootstrap4.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'plugins/datatables.net-autofill-bs4/css/autoFill.bootstrap4.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'plugins/datatables.net-colreorder-bs4/css/colReorder.bootstrap4.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'plugins/datatables.net-keytable-bs4/css/keyTable.bootstrap4.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'plugins/datatables.net-rowreorder-bs4/css/rowReorder.bootstrap4.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'plugins/datatables.net-select-bs4/css/select.bootstrap4.min.css' %}" rel="stylesheet" />
+{% endblock css %}
+
+{% block js %}
+    <script src="{% static 'plugins/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables.net-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables.net-responsive/js/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables.net-responsive-bs4/js/responsive.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables.net-autofill/js/dataTables.autoFill.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables.net-autofill-bs4/js/autoFill.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables.net-colreorder/js/dataTables.colReorder.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables.net-colreorder-bs4/js/colReorder.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables.net-keytable/js/dataTables.keyTable.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables.net-keytable-bs4/js/keyTable.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables.net-rowreorder/js/dataTables.rowReorder.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables.net-rowreorder-bs4/js/rowReorder.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables.net-select/js/dataTables.select.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables.net-select-bs4/js/select.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables.net-buttons/js/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables.net-buttons-bs4/js/buttons.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables.net-buttons/js/buttons.colVis.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables.net-buttons/js/buttons.flash.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables.net-buttons/js/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables.net-buttons/js/buttons.print.min.js' %}"></script>
+    <script src="{% static 'plugins/pdfmake/build/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/pdfmake/build/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/jszip/dist/jszip.min.js' %}"></script>
+    <script src="{% static 'js/datatable_config.js' %}"></script>
+{% endblock js %}

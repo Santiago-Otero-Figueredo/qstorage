@@ -1,0 +1,236 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>{% block titulo %}{% endblock titulo %} | {{request.tenant.siglas}}</title>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+    <meta content="" name="description" />
+    <meta content="DAnalytics" name="author" />
+
+    <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}" type="image/x-icon">
+    <link rel="icon" href="{% static 'img/favicon.ico' %}" type="image/x-icon">
+    
+    <!-- ================== BEGIN BASE CSS STYLE ================== -->
+    <link href="{% static 'css/open_sans.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/facebook/app.min.css' %}" rel="stylesheet" />
+    <!-- ================== END BASE CSS STYLE ================== -->
+
+    <link href="{% static 'plugins/bootstrap-datepicker/dist/css/bootstrap-datepicker3.css' %}" rel="stylesheet" />
+    <link href="{% static 'plugins/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css' %}" rel="stylesheet"/>
+    <link href="{% static 'plugins/toastr/toastr.min.css' %}" rel="stylesheet" />
+
+    <link href="{% static 'css/estilos_propios.css' %}?v4" rel="stylesheet" />
+    <link href="{% static 'css/modal_estilos.css' %}?v4" rel="stylesheet" />
+    <link href="{% static 'plugins/bootstrap-calendar/css/bootstrap_calendar.css'%}" rel="stylesheet" />
+
+    {% block css %}{% endblock css %}
+    {{ form.media.css }} 
+</head>
+<body>
+    <!-- begin #page-loader -->
+    <div id="page-loader" class="fade show">
+        <span class="spinner"></span>
+    </div>
+    <!-- end #page-loader -->
+    
+    <!-- begin #page-container -->
+    <div id="page-container" class="page-container fade page-sidebar-fixed page-header-fixed">
+        <!-- begin #header -->
+        <div id="header" class="header navbar-inverse">
+            <!-- begin navbar-header -->
+            <div class="navbar-header">
+                <a href="javascript:;" class="navbar-brand">
+                    <img src="{% static 'img/logo-univalle.png' %}">
+                </a>
+                <button type="button" class="navbar-toggle" data-click="sidebar-toggled">
+                    <span class="icon-bar fondo_icono_minimizacion"></span>
+                    <span class="icon-bar fondo_icono_minimizacion"></span>
+                    <span class="icon-bar fondo_icono_minimizacion"></span>
+                </button>
+            </div>
+            <!-- end navbar-header -->
+            <!-- begin header-nav -->
+            <ul class="navbar-nav navbar-right">
+                {% comment %}
+                <li class="navbar-form">
+                    <form action="" method="POST" name="search">
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="Enter keyword" />
+                            <button type="submit" class="btn btn-search"><i class="fa fa-search"></i></button>
+                        </div>
+                    </form>
+                </li>
+                <li class="dropdown">
+                    <a href="#" data-toggle="dropdown" class="dropdown-toggle f-s-14">
+                        <i class="fa fa-bell"></i>
+                        <span class="label">0</span>
+                    </a>
+                    <div class="dropdown-menu media-list dropdown-menu-right">
+                        <div class="dropdown-header">NOTIFICATIONS (0)</div>
+                        <div class="text-center width-300 p-b-10 p-t-10">
+                            No notification found
+                        </div>
+                    </div>
+                </li>
+                {% endcomment %}
+                <li class="dropdown navbar-user">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        <div class="image image-icon bg-black text-grey-darker">
+                            <i class="fa fa-user"></i>
+                        </div>
+                        <span class="d-none d-md-inline negro">{{request.user}} - {{request.user.obtener_rol}}</span> <b class="caret"></b>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right">
+                        <a href="{% url 'usuarios:cambiar_clave' %}" class="dropdown-item">Cambiar clave</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="{% url 'usuarios:logout' %}" class="dropdown-item">Cerrar sesión</a>
+                    </div>
+                </li>
+            </ul>
+            <!-- end header-nav -->
+        </div>
+        <!-- end #header -->
+        
+        <!-- begin #sidebar -->
+        <div id="sidebar" class="sidebar">
+            <!-- begin sidebar scrollbar -->
+            <div data-scrollbar="true" data-height="100%">
+                
+                <!-- begin sidebar user -->
+                <ul class="nav">
+                    <li class="nav-profile">
+                        <a href="javascript:;">
+                            <div class="info">
+                                <small>Sistema de gestión de tesis - {{request.tenant.siglas}}</small>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+                <!-- end sidebar user -->
+                
+                <!-- begin sidebar nav -->
+                <ul class="nav"><li class="nav-header">Menú</li>
+                    {% include 'menus/base.html' %}
+                    <!-- begin sidebar minify button -->
+                    <li><a href="javascript:;" class="sidebar-minify-btn" data-click="sidebar-minify"><i class="fa fa-angle-double-left"></i></a></li>
+                    <!-- end sidebar minify button -->
+                </ul>
+                <!-- end sidebar nav -->
+            </div>
+            <!-- end sidebar scrollbar -->
+        </div>
+        <div class="sidebar-bg"></div>
+        <!-- end #sidebar -->
+        
+        <!-- begin #content -->
+        <div id="content" class="content">
+            <!-- begin breadcrumb -->
+            <ol class="breadcrumb">
+                {% block miga_pan %}
+                    <li class="breadcrumb-item"><a href="javascript:;">Home</a></li>
+                    <li class="breadcrumb-item"><a href="javascript:;">Page Options</a></li>
+                    <li class="breadcrumb-item active">Blank Page</li>
+                {% endblock miga_pan %}
+            </ol>
+            <!-- end breadcrumb -->
+            <!-- begin page-header -->
+            <h1 class="page-header">{% block titulo_pagina %}{% endblock titulo_pagina %}</h1>
+            <!-- end page-header -->
+
+            {% block contenido %}
+                <!-- begin panel -->
+                <div class="panel panel-inverse">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">{% block titulo_panel %}{% endblock titulo_panel %}</h4>
+                        <div class="panel-heading-btn">
+                            <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        {% block contenido_panel %}{% endblock contenido_panel %}
+                    </div>
+                </div>
+                {% include 'modales/modal_proceso.html' %}
+                <!-- end panel -->
+            {% endblock contenido %}
+        </div>
+        <!-- end #content -->
+        
+        <!-- begin scroll to top btn -->
+        <a href="javascript:;" class="btn btn-icon btn-circle btn-danger btn-scroll-to-top fade" data-click="scroll-top"><i class="fa fa-angle-up"></i></a>
+        <!-- end scroll to top btn -->
+        <div id="footer" class="footer" style="color: grey;">
+			Copyright &copy; 2021 Sistema de gestión de tesis.
+            <p>Desarrollado por <a href="https://danalyticspro.co/" target="_blank" style="color: grey;"><u>DAnalytics S.A.S</u></a></p> 
+		</div>
+    </div>
+    <!-- end page container -->
+    
+    <!-- ================== BEGIN BASE JS ================== -->
+    <script src="{% static 'js/app.min.js' %}"></script>
+    <script src="{% static 'js/theme/facebook.min.js' %}"></script>
+    <!-- ================== END BASE JS ================== -->
+
+    <script src="{% static 'plugins/toastr/toastr.min.js' %}"></script>
+    <script src="{% static 'plugins/moment/min/moment-with-locales.min.js' %}"></script>
+
+    <script src="{% static 'plugins/bootstrap-datepicker/dist/js/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'plugins/bootstrap-datepicker/dist/locales/bootstrap-datepicker.es.min.js' %}"></script>
+    
+    <script src="{% static 'plugins/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js' %}"></script>
+    <script src="{% static 'plugins/moment/min/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/bootstrap-calendar/js/bootstrap_calendar.min.js' %}"></script>
+ <!-- ================== BEGIN BASE JS ================== -->
+
+    {% block js %}{% endblock js %}
+
+    <script>
+        $(document).ready(function() {
+            {% for msg in messages %}
+                setTimeout(
+                    function() {
+                        toastr.options = {
+                            "closeButton": true,
+                            "progressBar": true,
+                            "showEasing": "swing",
+                            "extendedTimeOut": 5000,
+                            "timeOut": 3000,
+                            "progressBar": true
+                        }
+                        toastr["{{ msg.tags }}"]("{{msg}}")
+                    }, 500
+                );
+            {% endfor %}
+        });
+
+        $('.fecha').datepicker({
+            todayHighlight: true,
+            language: "es",
+            startView: 2,
+            format: "yyyy-mm-dd",
+        });
+        $(".readonly").keydown(function(e){
+            e.preventDefault();
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            $('button[type="submit"]').click(function(e){
+                $("#modal_procesando").modal({
+                    backdrop: "static",
+                    keyboard: false,
+                    show: true 
+                });
+                setTimeout(function() {
+                $("#modal_procesando").modal("hide");
+                }, 5000);
+            });
+        });
+    </script>
+
+    {{ form.media.js }}
+</body>
+</html>
