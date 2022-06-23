@@ -29,6 +29,7 @@ class Folder(MP_Node, BaseProjectModel):
     collaboration_users = models.ManyToManyField('users.User', verbose_name='Collaborators', related_name='shared_entity_directories', through='directories.collaboration')
     name = models.CharField(max_length=255, verbose_name='Name')
     route = models.CharField(max_length=255, verbose_name='Path of entity')
+    old_name = models.CharField(max_length=255, verbose_name='Old name', default='')
 
     node_order_by = ['name']
 
@@ -103,9 +104,8 @@ class Folder(MP_Node, BaseProjectModel):
             return Folder.objects.filter(owner_user=user).first().get_root_nodes().first()
         except:
             return None
-            
 
-
+    
 @receiver(pre_save, sender=Folder)
 def pre_save_assign_root_folder(sender, instance, *args, **kwargs):
     import os, shutil, errno
@@ -114,30 +114,40 @@ def pre_save_assign_root_folder(sender, instance, *args, **kwargs):
 
     user_path = f'{instance.owner_user.pk}'
     ancestors = instance.get_ancestors().values_list('name', flat=True)
-
-    has_children = (instance.get_children_count() > 0)
-
-    
+   
     list_path = [user_path]
 
     if ancestors:
         list_path = list_path + ancestors[1::]
 
     path_folder = "/".join(list_path)
+    
     media_patch_folder = os.path.join(MEDIA_ROOT, path_folder)
-
-    if not has_children:
+    if ancestors:
+        media_patch_folder = os.path.join(MEDIA_ROOT, path_folder, instance.name)
+        
+    print('media_patch_folder: ', media_patch_folder)
+    print('path_folder: ', path_folder)
+    print('instance.name: ', instance.name)
+    print('MEDIA_ROOT: ', MEDIA_ROOT)
+    if instance.pk is None:
         os.umask(0)
         os.makedirs(media_patch_folder, mode=0o777)
+    elif instance.get_children_count() > 0 or instance.is_leaf() and not instance.is_root():
+        update_children_folders(instance)
 
     instance.route = f'{path_folder}/'
+    instance.old_name = instance.name
 
+# @receiver(post_save, sender=Folder)
+# def post_save_update_children_folders(sender, created, instance, *args, **kwargs):
 
-@receiver(post_save, sender=Folder)
-def post_save_update_children_folders(sender, created, instance, *args, **kwargs):
+#     if instance.get_children_count() > 0 or instance.is_leaf() and not instance.is_root():
+#         update_children_folders(instance)
 
-    if instance.get_children_count() > 0:
-        update_children_folders(instance)
+#     folder_update = Folder.objects.filter(pk=instance.pk)
+#     folder_update.update(old_name = instance.name)
+
        
 
 
