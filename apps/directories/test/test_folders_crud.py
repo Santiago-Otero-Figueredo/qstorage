@@ -1,7 +1,6 @@
-import email
-from unicodedata import name
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.test import override_settings
 
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -9,11 +8,13 @@ from rest_framework.authtoken.models import Token
 
 from apps.directories.models import Folder
 
+from django.conf import settings
 
 #URL_LIST_CREATE_FOLDER = reverse('directories:create-folder')
 #URL_DETAIL_FOLDER = reverse('directories:folders-detail')
 
 
+@override_settings(MEDIA_ROOT=settings.MEDIA_ROOT_TEST)
 class FolderCRUDAPITest(APITestCase):
 
     def setUp(self) -> None:
@@ -62,6 +63,6 @@ class FolderCRUDAPITest(APITestCase):
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(child_folder.is_child_of(self.test_folder))
-        self.assertEqual(child_folder.route, 'folder_test/')
+        self.assertEqual(child_folder.route, '1/test_1/')
 
 # Create your tests here.

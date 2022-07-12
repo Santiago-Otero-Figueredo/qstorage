@@ -154,7 +154,7 @@ STATICFILES_FINDERS = [
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = str(APPS_DIR('media'))
-
+MEDIA_ROOT_TEST = f'{MEDIA_ROOT}/test/'
 
 
 REST_FRAMEWORK = {
@@ -162,3 +162,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ]
 }
+
+
+# Settings for storage
+ROOT_NAME_FOLDER = get_secret('ROOT_NAME_FOLDER')

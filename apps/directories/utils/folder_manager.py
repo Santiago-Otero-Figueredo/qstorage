@@ -1,10 +1,10 @@
 from django.conf import settings
 
-import os, shutil, errno
+import os
 
 def create_folder(folder_instance:'Folder'):
  
-    MEDIA_ROOT = getattr(settings, "MEDIA_ROOT", None)
+    MEDIA_ROOT = settings.MEDIA_ROOT
 
     user_path = f'{folder_instance.owner_user.pk}'
     ancestors = folder_instance.get_ancestors().values_list('name', flat=True)
@@ -28,7 +28,7 @@ def update_children_folders(folder_instance:'Folder', rename_folder=True):
     print(folder_instance)
 
     if rename_folder:
-        MEDIA_ROOT = getattr(settings, "MEDIA_ROOT", None)
+        MEDIA_ROOT = settings.MEDIA_ROOT
 
         if folder_instance.is_leaf():
             route_children = folder_instance.route.split('/')
@@ -46,9 +46,6 @@ def update_children_folders(folder_instance:'Folder', rename_folder=True):
 
         media_patch_parent_folder = os.path.join(MEDIA_ROOT, folder_instance.route, folder_instance.name)
         
-        print(media_patch_parent_folder)
-        print(media_patch_children_folder)
-
         os.rename(media_patch_children_folder, media_patch_parent_folder)
 
     children_folders = folder_instance.get_children()

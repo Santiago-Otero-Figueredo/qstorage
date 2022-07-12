@@ -85,7 +85,7 @@ class Folder(MP_Node, BaseProjectModel):
                 root(Folder): The root folder created
         """
 
-        return Folder.add_root(owner_user=user, name='/', route='/')
+        return Folder.add_root(owner_user=user, name=settings.ROOT_NAME_FOLDER, route=settings.ROOT_NAME_FOLDER)
 
 
     @staticmethod
@@ -110,7 +110,7 @@ class Folder(MP_Node, BaseProjectModel):
 def pre_save_assign_root_folder(sender, instance, *args, **kwargs):
     import os, shutil, errno
 
-    MEDIA_ROOT = getattr(settings, "MEDIA_ROOT", None)
+    MEDIA_ROOT = settings.MEDIA_ROOT
 
     user_path = f'{instance.owner_user.pk}'
     ancestors = instance.get_ancestors().values_list('name', flat=True)
@@ -125,11 +125,7 @@ def pre_save_assign_root_folder(sender, instance, *args, **kwargs):
     media_patch_folder = os.path.join(MEDIA_ROOT, path_folder)
     if ancestors:
         media_patch_folder = os.path.join(MEDIA_ROOT, path_folder, instance.name)
-        
-    print('media_patch_folder: ', media_patch_folder)
-    print('path_folder: ', path_folder)
-    print('instance.name: ', instance.name)
-    print('MEDIA_ROOT: ', MEDIA_ROOT)
+
     if instance.pk is None:
         os.umask(0)
         os.makedirs(media_patch_folder, mode=0o777)
@@ -138,17 +134,6 @@ def pre_save_assign_root_folder(sender, instance, *args, **kwargs):
 
     instance.route = f'{path_folder}/'
     instance.old_name = instance.name
-
-# @receiver(post_save, sender=Folder)
-# def post_save_update_children_folders(sender, created, instance, *args, **kwargs):
-
-#     if instance.get_children_count() > 0 or instance.is_leaf() and not instance.is_root():
-#         update_children_folders(instance)
-
-#     folder_update = Folder.objects.filter(pk=instance.pk)
-#     folder_update.update(old_name = instance.name)
-
-       
 
 
 class File(BaseProjectModel):

@@ -29,7 +29,6 @@ class FolderVS(ModelViewSet):
             return Response({'message':'The folder does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = FolderCreateSerializer(instance=parent_folder, data=request.data, context={'method':self.request.method, 'owner_user':self.request.user})
-
         if serializer.is_valid():# and self.check_object_permissions(self.request, parent_folder):
             serializer.save()
             return Response(request.data, status=status.HTTP_201_CREATED)

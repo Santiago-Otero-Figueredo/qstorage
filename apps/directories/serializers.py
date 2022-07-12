@@ -21,7 +21,7 @@ class FolderCreateSerializer(serializers.ModelSerializer):
             return super().save(**kwargs)
 
         pay_load = ({**self.validated_data, 'owner_user':owner_user, **kwargs, 'parent_folder':self.instance})       
-        print(pay_load)
+
         return Folder.create_folder_and_assign_to_parent(**pay_load)
 
 

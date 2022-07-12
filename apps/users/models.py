@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.contrib.auth.models import PermissionsMixin, AbstractUser
@@ -19,7 +20,7 @@ class User(AbstractUser, PermissionsMixin, BaseProjectModel):
 
 
     @staticmethod
-    def get_user_by_email(email):
+    def get_user_by_email(email) -> 'User':
         """
             Return the user whit the email received as parameter
 
@@ -34,11 +35,20 @@ class User(AbstractUser, PermissionsMixin, BaseProjectModel):
             return User.objects.get(email=email)
         except:
             return None
+    
+
+    def get_all_folders_except_root(self) -> 'Queryset<Folder>':
+        """
+            Return all folders of the user except for the root
+
+            Return:
+                folders(Queryset<Folder>): user's folders
+        """
+        return self.own_entity_directories.exclude(name=settings.ROOT_NAME_FOLDER)
 
 
 @receiver(post_save, sender=User)
 def assign_root_folder(sender, instance, created, *args, **kwargs):
-
 
     if created:        
         Folder.create_root_folder_to_created_user(instance)
