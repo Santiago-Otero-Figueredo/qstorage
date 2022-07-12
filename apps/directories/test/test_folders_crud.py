@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
-from django.urls import reverse
+from django.conf import settings
 from django.test import override_settings
+from django.urls import reverse
 
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -8,17 +9,16 @@ from rest_framework.authtoken.models import Token
 
 from apps.directories.models import Folder
 
-from django.conf import settings
-
-#URL_LIST_CREATE_FOLDER = reverse('directories:create-folder')
-#URL_DETAIL_FOLDER = reverse('directories:folders-detail')
-
+from shutil import rmtree
 
 @override_settings(MEDIA_ROOT=settings.MEDIA_ROOT_TEST)
 class FolderCRUDAPITest(APITestCase):
 
-    def setUp(self) -> None:
-        self.user = get_user_model().objects.create(
+    @classmethod
+    def setUpClass(cls) -> None:
+        super(FolderCRUDAPITest, cls).setUpClass()
+        cls.user = get_user_model().objects.create(
+            pk=1,
             first_name='test',
             last_name='testing',
             username='TT',
@@ -26,9 +26,10 @@ class FolderCRUDAPITest(APITestCase):
             password='contrasenia@123456'
         )
 
-        self.token, _ = Token.objects.get_or_create(user=self.user)
-        self.root_folder = Folder.get_root_folder_by_user(self.user)
-        self.test_folder = self.root_folder.add_child(owner_user=self.user, name='test_1', route=2)
+        cls.token, _ = Token.objects.get_or_create(user=cls.user)
+        cls.root_folder = Folder.get_root_folder_by_user(cls.user)
+        cls.test_folder = cls.root_folder.add_child(owner_user=cls.user, name='test_1', route='/')
+        cls.nested_test_folder = cls.test_folder.add_child(owner_user=cls.user, name='test_1_nested', route='/')
 
 
     def test_create_folder_in_root(self):
@@ -56,7 +57,7 @@ class FolderCRUDAPITest(APITestCase):
 
         URL_LIST_CREATE_FOLDER = reverse('directories:folders-create-folder', kwargs={'pk':self.test_folder.pk})
 
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
         response = self.client.post(URL_LIST_CREATE_FOLDER, payload)        
 
         child_folder = Folder.objects.get(name='folder_test_nested')
@@ -65,4 +66,29 @@ class FolderCRUDAPITest(APITestCase):
         self.assertTrue(child_folder.is_child_of(self.test_folder))
         self.assertEqual(child_folder.route, '1/test_1/')
 
+    
+    def test_update_name_file(self):
+        
+        update_data = {
+            'name':'update_name',
+        }
+
+        URL_DIRECTORIES_CRUD = reverse('directories:folders-detail', kwargs={'pk':self.test_folder.pk})
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        response = self.client.patch(URL_DIRECTORIES_CRUD, update_data)
+
+        child_folder = Folder.objects.get(name='test_1_nested')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.root_folder.get_first_child().name, 'update_name')
+        self.assertEqual(child_folder.route, '1/update_name/')
+        self.assertTrue(child_folder.is_child_of(self.root_folder.get_first_child()))
+        
+
+    @classmethod
+    def tearDownClass(cls):
+       super(FolderCRUDAPITest, cls).tearDownClass()
+       """ Remove test file in media"""
+       rmtree(settings.MEDIA_ROOT_TEST, ignore_errors=True)
 # Create your tests here.
