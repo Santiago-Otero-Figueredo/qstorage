@@ -3,7 +3,7 @@ from django.conf import settings
 import os
 
 def create_folder(folder_instance:'Folder'):
- 
+
     MEDIA_ROOT = settings.MEDIA_ROOT
 
     user_path = f'{folder_instance.owner_user.pk}'
@@ -16,7 +16,7 @@ def create_folder(folder_instance:'Folder'):
 
     path_folder = "/".join(list_path)
     media_patch_folder = os.path.join(MEDIA_ROOT, path_folder)
-  
+
     os.umask(0)
     os.makedirs(media_patch_folder, mode=0o777)
 
@@ -24,8 +24,6 @@ def create_folder(folder_instance:'Folder'):
 
 
 def update_children_folders(folder_instance:'Folder', rename_folder=True):
-
-    print(folder_instance)
 
     if rename_folder:
         MEDIA_ROOT = settings.MEDIA_ROOT
@@ -35,17 +33,17 @@ def update_children_folders(folder_instance:'Folder', rename_folder=True):
         else:
             first_children = folder_instance.get_first_child()
             route_children = first_children.route.split('/')
-        
+
         route_children = route_children[:-1]
         old_path_children = "/".join(route_children)
 
         media_patch_children_folder = os.path.join(MEDIA_ROOT, old_path_children)
 
-        if folder_instance.is_leaf() and not folder_instance.is_root():        
+        if folder_instance.is_leaf() and not folder_instance.is_root():
             media_patch_children_folder = os.path.join(media_patch_children_folder, folder_instance.old_name)
 
         media_patch_parent_folder = os.path.join(MEDIA_ROOT, folder_instance.route, folder_instance.name)
-        
+
         os.rename(media_patch_children_folder, media_patch_parent_folder)
 
     children_folders = folder_instance.get_children()

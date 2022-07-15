@@ -20,7 +20,7 @@ class FolderCreateSerializer(serializers.ModelSerializer):
         if method != 'POST':
             return super().save(**kwargs)
 
-        pay_load = ({**self.validated_data, 'owner_user':owner_user, **kwargs, 'parent_folder':self.instance})       
+        pay_load = ({**self.validated_data, 'owner_user':owner_user, **kwargs, 'parent_folder':self.instance})
 
         return Folder.create_folder_and_assign_to_parent(**pay_load)
 
@@ -34,3 +34,6 @@ class FolderCreateSerializer(serializers.ModelSerializer):
             raise ValidationError("There cannot be two folders with the same name")
 
         return data
+
+
+
