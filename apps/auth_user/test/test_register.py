@@ -9,8 +9,8 @@ from apps.directories.models import Folder
 
 URL_REGISTER = reverse('auth:register')
 
-class RegisterAPITestCase(APITestCase):
 
+class RegisterAPITestCase(APITestCase):
 
     def test_register_successfully(self):
         user_register = {
@@ -28,7 +28,6 @@ class RegisterAPITestCase(APITestCase):
         self.assertIn('token', response.data['value'])
         self.assertTrue(response.data['success'])
 
-
     def test_register_duplicate(self):
         user_register = {
             "first_name": "Test",
@@ -45,7 +44,6 @@ class RegisterAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIsNone(response.data['value'])
         self.assertFalse(response.data['success'])
-    
 
     def test_register_required_fields(self):
         user_register = {
@@ -63,7 +61,6 @@ class RegisterAPITestCase(APITestCase):
         self.assertIsNone(response.data['value'])
         self.assertFalse(response.data['success'])
 
-
     def test_register_different_passwords(self):
         user_register = {
             "first_name": "Test",
@@ -80,7 +77,6 @@ class RegisterAPITestCase(APITestCase):
         self.assertIsNone(response.data['value'])
         self.assertFalse(response.data['success'])
 
-    
     def test_register_method_not_allowed(self):
         user_register = {
             "first_name": "Test",
@@ -95,7 +91,6 @@ class RegisterAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    
     def test_register_successfully_root_folder(self):
         user_register = {
             "first_name": "Test2",
@@ -112,9 +107,3 @@ class RegisterAPITestCase(APITestCase):
         root_folder = Folder.get_root_folder_by_user(user)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(root_folder.is_root())
-
-        
-
-
-
-

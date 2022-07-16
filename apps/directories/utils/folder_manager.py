@@ -1,10 +1,16 @@
+from typing import TYPE_CHECKING
+
 from django.conf import settings
 
 import os
 
-def create_folder(folder_instance:'Folder'):
+if TYPE_CHECKING:
+    from ..models import Folder
 
-    MEDIA_ROOT = settings.MEDIA_ROOT
+
+def create_folder(folder_instance: 'Folder') -> None:
+
+    media_root_path = settings.MEDIA_ROOT
 
     user_path = f'{folder_instance.owner_user.pk}'
     ancestors = folder_instance.get_ancestors().values_list('name', flat=True)
@@ -15,7 +21,7 @@ def create_folder(folder_instance:'Folder'):
         list_path = list_path + ancestors[1::] + [folder_instance.name]
 
     path_folder = "/".join(list_path)
-    media_patch_folder = os.path.join(MEDIA_ROOT, path_folder)
+    media_patch_folder = os.path.join(media_root_path, path_folder)
 
     os.umask(0)
     os.makedirs(media_patch_folder, mode=0o777)
@@ -23,10 +29,10 @@ def create_folder(folder_instance:'Folder'):
     folder_instance.route = f'{path_folder}/'
 
 
-def update_children_folders(folder_instance:'Folder', rename_folder=True):
+def update_children_folders(folder_instance: 'Folder', rename_folder: bool = True) -> None:
 
     if rename_folder:
-        MEDIA_ROOT = settings.MEDIA_ROOT
+        media_root_path = settings.MEDIA_ROOT
 
         if folder_instance.is_leaf():
             route_children = folder_instance.route.split('/')
@@ -37,17 +43,17 @@ def update_children_folders(folder_instance:'Folder', rename_folder=True):
         route_children = route_children[:-1]
         old_path_children = "/".join(route_children)
 
-        media_patch_children_folder = os.path.join(MEDIA_ROOT, old_path_children)
+        media_patch_children_folder = os.path.join(media_root_path, old_path_children)
 
         if folder_instance.is_leaf() and not folder_instance.is_root():
             media_patch_children_folder = os.path.join(media_patch_children_folder, folder_instance.old_name)
 
-        media_patch_parent_folder = os.path.join(MEDIA_ROOT, folder_instance.route, folder_instance.name)
+        media_patch_parent_folder = os.path.join(media_root_path, folder_instance.route, folder_instance.name)
 
         os.rename(media_patch_children_folder, media_patch_parent_folder)
 
     children_folders = folder_instance.get_children()
-    children_folders.update(route =f'{folder_instance.route}{folder_instance.name}/')
+    children_folders.update(route=f'{folder_instance.route}{folder_instance.name}/')
 
     if folder_instance.get_children_count() > 0:
         for children in children_folders:

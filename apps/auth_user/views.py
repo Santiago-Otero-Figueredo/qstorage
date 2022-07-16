@@ -7,19 +7,18 @@ from rest_framework.authtoken.models import Token
 from apps.users.serializers import RegisterSerializer
 
 
-# Create your views here.
 @api_view(('POST', ))
 def register_view(request):
     if request.method == 'POST':
         serializer = RegisterSerializer(data=request.data)
-        
+
         pay_load = {}
         pay_load['value'] = {}
         pay_load['errors'] = []
         pay_load['success'] = True
 
         if serializer.is_valid():
-            
+
             user = serializer.save()
 
             token, _ = Token.objects.get_or_create(user=user)
@@ -34,11 +33,10 @@ def register_view(request):
             return Response(pay_load, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 @api_view(('POST', ))
 @permission_classes((IsAuthenticated, ))
 def logout_view(request):
-    
+
     if request.method == 'POST':
         request.user.auth_token.delete()
         return Response()

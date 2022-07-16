@@ -2,9 +2,9 @@ from django.urls import path
 
 from rest_framework.authtoken.views import obtain_auth_token
 
-from .views import (logout_view, 
+from .views import (logout_view,
                     register_view)
-                 
+
 
 app_name = "auth_user"
 

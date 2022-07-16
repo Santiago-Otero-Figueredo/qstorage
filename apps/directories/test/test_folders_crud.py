@@ -1,4 +1,3 @@
-from urllib import response
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.test import override_settings
@@ -11,6 +10,11 @@ from rest_framework.authtoken.models import Token
 from apps.directories.models import Folder
 
 from shutil import rmtree
+
+URL_CREATE_FOLDER = 'directories:folders-create-folder'
+URL_LIST_CHILDREN = 'directories:folders-children-folders'
+URL_DETAIL_FOLDER = 'directories:folders-detail'
+
 
 @override_settings(MEDIA_ROOT=settings.MEDIA_ROOT_TEST)
 class FolderCRUDAPITest(APITestCase):
@@ -37,36 +41,34 @@ class FolderCRUDAPITest(APITestCase):
         cls.nested_test_folder = cls.test_folder.add_child(owner_user=cls.user, name='test_1_nested', route='/')
         cls.nested_test_folder = cls.test_folder.add_child(owner_user=cls.user, name='test_2_nested', route='/')
 
-
     def test_create_folder_in_root(self):
         """ Testing the creation of a folder in the root folder """
         payload = {
-            'name':'folder_test',
-            'owner_user':self.user.pk
+            'name': 'folder_test',
+            'owner_user': self.user.pk
         }
 
-        URL_LIST_CREATE_FOLDER = reverse('directories:folders-create-folder', kwargs={'pk':self.root_folder.pk})
+        url_create_folder = reverse(URL_CREATE_FOLDER, kwargs={'pk': self.root_folder.pk})
 
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
-        response = self.client.post(URL_LIST_CREATE_FOLDER, payload)
+        response = self.client.post(url_create_folder, payload)
 
         child_folder = Folder.objects.get(name='folder_test')
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(child_folder.is_child_of(self.root_folder))
 
-
     def test_create_folder_in_child_folder(self):
         """ Testing the creation of a folder inside another folder other than root folder"""
         payload = {
-            'name':'folder_test_nested',
-            'owner_user':self.user.pk
+            'name': 'folder_test_nested',
+            'owner_user': self.user.pk
         }
 
-        URL_LIST_CREATE_FOLDER = reverse('directories:folders-create-folder', kwargs={'pk':self.test_folder.pk})
+        url_create_folder = reverse(URL_CREATE_FOLDER, kwargs={'pk': self.test_folder.pk})
 
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
-        response = self.client.post(URL_LIST_CREATE_FOLDER, payload)
+        response = self.client.post(url_create_folder, payload)
 
         child_folder = Folder.objects.get(name='folder_test_nested')
 
@@ -74,18 +76,17 @@ class FolderCRUDAPITest(APITestCase):
         self.assertTrue(child_folder.is_child_of(self.test_folder))
         self.assertEqual(child_folder.route, '1/test_1/')
 
-
     def test_update_name_file(self):
         """ Testing the update name and the update of paths of the children folders"""
 
         update_data = {
-            'name':'update_name',
+            'name': 'update_name',
         }
 
-        URL_DIRECTORIES_CRUD = reverse('directories:folders-detail', kwargs={'pk':self.test_folder.pk})
+        url_detail_folder = reverse(URL_DETAIL_FOLDER, kwargs={'pk': self.test_folder.pk})
 
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
-        response = self.client.patch(URL_DIRECTORIES_CRUD, update_data)
+        response = self.client.patch(url_detail_folder, update_data)
 
         child_folder = Folder.objects.get(name='test_1_nested')
 
@@ -94,30 +95,28 @@ class FolderCRUDAPITest(APITestCase):
         self.assertEqual(child_folder.route, '1/update_name/')
         self.assertTrue(child_folder.is_child_of(self.root_folder.get_first_child()))
 
-
     def test_list_children_folders_in_root(self):
         """ Testing the list of children folders in root"""
 
-        URL_DIRECCIONES_CRUD = reverse('directories:folders-children-folders', kwargs={'pk':self.root_folder.pk})
+        url_list_children = reverse(URL_LIST_CHILDREN, kwargs={'pk': self.root_folder.pk})
 
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
 
-        response = self.client.get(URL_DIRECCIONES_CRUD)
+        response = self.client.get(url_list_children)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data[0]['name'], 'test_1')
         self.assertEqual(response.data[1]['name'], 'test_2')
         self.assertEqual(response.data[2]['name'], 'test_file')
 
-
     def test_list_children_folders_in_nested_folder(self):
         """ Testing the list of children folders in another folder different of root"""
 
-        URL_DIRECCIONES_CRUD = reverse('directories:folders-children-folders', kwargs={'pk':self.test_folder.pk})
+        url_list_children = reverse(URL_LIST_CHILDREN, kwargs={'pk': self.test_folder.pk})
 
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
 
-        response = self.client.get(URL_DIRECCIONES_CRUD)
+        response = self.client.get(url_list_children)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data[0]['name'], 'test_1_nested')
@@ -125,7 +124,7 @@ class FolderCRUDAPITest(APITestCase):
 
     @classmethod
     def tearDownClass(cls):
-       super(FolderCRUDAPITest, cls).tearDownClass()
-       """ Remove the test file in media"""
-       rmtree(settings.MEDIA_ROOT_TEST, ignore_errors=True)
+        """ Remove the test file in media"""
+        super(FolderCRUDAPITest, cls).tearDownClass()
+        rmtree(settings.MEDIA_ROOT_TEST, ignore_errors=True)
 # Create your tests here.

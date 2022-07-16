@@ -1,0 +1,6 @@
+-r base.pip
+
+coverage==6.3.1
+pylint-django==2.5.0
+flake8==4.0.1
+pep8-naming==0.12.1

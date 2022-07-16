@@ -1,11 +1,13 @@
 from django.db import models
+from django.db.models import QuerySet
 from django.conf import settings
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import PermissionsMixin, AbstractUser
 
 from apps.core.models import BaseProjectModel
 from apps.directories.models import Folder
+
 
 class User(AbstractUser, PermissionsMixin, BaseProjectModel):
     username = models.CharField(db_index=True, max_length=255, unique=True)
@@ -17,7 +19,6 @@ class User(AbstractUser, PermissionsMixin, BaseProjectModel):
 
     def __str__(self):
         return f"{self.email}"
-
 
     @staticmethod
     def get_user_by_email(email) -> 'User':
@@ -33,11 +34,10 @@ class User(AbstractUser, PermissionsMixin, BaseProjectModel):
 
         try:
             return User.objects.get(email=email)
-        except:
+        except User.DoesNotExist:
             return None
-    
 
-    def get_all_folders_except_root(self) -> 'Queryset<Folder>':
+    def get_all_folders_except_root(self) -> 'QuerySet[Folder]':
         """
             Return all folders of the user except for the root
 
@@ -50,11 +50,5 @@ class User(AbstractUser, PermissionsMixin, BaseProjectModel):
 @receiver(post_save, sender=User)
 def assign_root_folder(sender, instance, created, *args, **kwargs):
 
-    if created:        
+    if created:
         Folder.create_root_folder_to_created_user(instance)
-
-    
-#@receiver(pre_save, sender=User)
-#def create_media_folder_user(sender, instance, *args, **kwargs):
-
-    
