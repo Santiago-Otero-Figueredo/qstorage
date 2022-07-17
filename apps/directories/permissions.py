@@ -3,11 +3,14 @@ from django.conf import settings
 from rest_framework import permissions
 
 
-class IsOwnerUser(permissions.BasePermission):
+class IsAuthenticatedOwnerUser(permissions.IsAuthenticated):
+
+    def has_permission(self, request, view) -> bool:
+        return super().has_permission(request, view)
 
     def has_object_permission(self, request, view, obj):
 
-        if obj.owner_user.pk != request.user.pk:
+        if not request.user.is_owner_folder(obj.pk):
             return False
 
         if request.method in permissions.SAFE_METHODS:
@@ -18,3 +21,5 @@ class IsOwnerUser(permissions.BasePermission):
 
         if request.method in ('POST', ):
             return True
+
+        return False

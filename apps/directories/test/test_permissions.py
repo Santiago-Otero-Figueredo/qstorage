@@ -87,7 +87,7 @@ class PermissionsAPITestCase(APITestCase):
 
         response = self.client.get(url_list_children_folders)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_create_folders_not_permissions(self):
         """ Testing the permissions for create folder action.
@@ -103,7 +103,7 @@ class PermissionsAPITestCase(APITestCase):
 
         response = self.client.post(url_list_children_folders, payload)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_update_name_not_permissions(self):
         """ Testing the permissions for update folder action.
