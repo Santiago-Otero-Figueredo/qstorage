@@ -1,4 +1,6 @@
 reports/
+out/
+
 .gitignore
 Dockerfile
 docker-compose.yml

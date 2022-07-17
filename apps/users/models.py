@@ -8,6 +8,8 @@ from django.contrib.auth.models import PermissionsMixin, AbstractUser
 from apps.core.models import BaseProjectModel
 from apps.directories.models import Folder
 
+from typing import Optional
+
 
 class User(AbstractUser, PermissionsMixin, BaseProjectModel):
     username = models.CharField(db_index=True, max_length=255, unique=True)
@@ -21,7 +23,7 @@ class User(AbstractUser, PermissionsMixin, BaseProjectModel):
         return f"{self.email}"
 
     @staticmethod
-    def get_user_by_email(email) -> 'User':
+    def get_user_by_email(email) -> Optional['User']:
         """
             Return the user whit the email received as parameter
 

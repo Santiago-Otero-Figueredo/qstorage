@@ -19,3 +19,4 @@ _datos_iniciales/unificado.sql
 coverage*
 htmlcov/*
 reports/
+out/

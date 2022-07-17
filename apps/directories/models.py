@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 from django.db import models
 from django.db.models.signals import pre_save
@@ -44,7 +44,7 @@ class Folder(MP_Node, BaseProjectModel):
         return 'Category: {}'.format(self.name)
 
     @staticmethod
-    def create_folder(owner_user: 'User', name: str):
+    def create_folder(owner_user: 'User', name: str) -> 'Folder':
         """
             Create a new folder to a user
 
@@ -89,7 +89,7 @@ class Folder(MP_Node, BaseProjectModel):
         return Folder.add_root(owner_user=user, name=settings.ROOT_NAME_FOLDER, route=settings.ROOT_NAME_FOLDER)
 
     @staticmethod
-    def get_root_folder_by_user(user: 'User') -> 'Folder':
+    def get_root_folder_by_user(user: 'User') -> Optional['Folder']:
         """
             Return the root folder of an user
 
