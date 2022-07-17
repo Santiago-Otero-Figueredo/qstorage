@@ -1,0 +1,105 @@
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.test import override_settings
+from django.urls import reverse
+
+from rest_framework import status
+from rest_framework.test import APITestCase
+from rest_framework.authtoken.models import Token
+
+from apps.directories.models import Folder
+
+from shutil import rmtree
+
+URL_CREATE_FOLDER = 'directories:folders-create-folder'
+URL_LIST_CHILDREN = 'directories:folders-children-folders'
+URL_DETAIL_FOLDER = 'directories:folders-detail'
+
+
+@override_settings(MEDIA_ROOT=settings.MEDIA_ROOT_TEST)
+class AuthenticationAPITestCase(APITestCase):
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        super(AuthenticationAPITestCase, cls).setUpClass()
+        cls.user_1 = get_user_model().objects.create(
+            pk=10,
+            first_name='test',
+            last_name='testing',
+            username='TT1',
+            email='testing1@xyz.com',
+            password='contrasenia@123456'
+        )
+
+        cls.token_1, _ = Token.objects.get_or_create(user=cls.user_1)
+
+        cls.root_folder_1 = Folder.get_root_folder_by_user(cls.user_1)
+        cls.user_1_test_folder_1 = cls.root_folder_1.add_child(
+            owner_user=cls.user_1,
+            name='user_1_test_1',
+            route='/'
+        )
+        cls.user_1_test_folder_2 = cls.root_folder_1.add_child(
+            owner_user=cls.user_1,
+            name='user_1_test_2',
+            route='/'
+        )
+        cls.user_1_test_folder_3 = cls.root_folder_1.add_child(
+            owner_user=cls.user_1,
+            name='user_1_test_3',
+            route='/'
+        )
+
+        cls.user_1_nested_test_folder_1 = cls.user_1_test_folder_1.add_child(
+            owner_user=cls.user_1,
+            name='user_1_test_1_nested',
+            route='/'
+        )
+        cls.user_1_nested_test_folder_2 = cls.user_1_test_folder_1.add_child(
+            owner_user=cls.user_1,
+            name='user_1_test_2_nested',
+            route='/'
+        )
+
+    def test_list_children_folders_not_authenticated(self):
+        """ Testing the authorization for access to the list children folder function.
+        The user have to be log in """
+
+        url_list_children_folders = reverse(URL_LIST_CHILDREN, kwargs={'pk': self.root_folder_1.pk})
+
+        response = self.client.get(url_list_children_folders)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_create_folders_not_authenticated(self):
+        """ Testing the authorization for create folder action. The user have to be log in """
+
+        payload = {
+            'name': 'folder_test_nested',
+            'owner_user': self.user_1.pk
+        }
+
+        url_list_children_folders = reverse(URL_CREATE_FOLDER, kwargs={'pk': self.root_folder_1.pk})
+
+        response = self.client.post(url_list_children_folders, payload)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_update_name_not_authenticated(self):
+        """ Testing the authorization for update folder action. The user have to be log in """
+
+        update_data = {
+            'name': 'update_name'
+        }
+
+        url_update_folders = reverse(URL_DETAIL_FOLDER, kwargs={'pk': self.root_folder_1.pk})
+
+        response = self.client.patch(url_update_folders, update_data)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    @classmethod
+    def tearDownClass(cls):
+        """ Remove the test file in media"""
+        super(AuthenticationAPITestCase, cls).tearDownClass()
+        rmtree(settings.MEDIA_ROOT_TEST, ignore_errors=True)

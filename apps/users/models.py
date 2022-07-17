@@ -48,6 +48,27 @@ class User(AbstractUser, PermissionsMixin, BaseProjectModel):
         """
         return self.own_entity_directories.exclude(name=settings.ROOT_NAME_FOLDER)
 
+    def get_all_folders(self) -> 'QuerySet[Folder]':
+        """
+            Return all folders of the user
+
+            Return:
+                folders(Queryset<Folder>): user's folders
+        """
+        return self.own_entity_directories.all()
+
+    def is_owner_folder(self, id_folder: int) -> bool:
+        """
+            Return if the user is owner of the folder
+
+            Parameter:
+                id_folder(int): id of the folder to validate
+
+            Return:
+                owner(bool): is owner
+        """
+        return self.own_entity_directories.filter(pk=id_folder).exists()
+
 
 @receiver(post_save, sender=User)
 def assign_root_folder(sender, instance, created, *args, **kwargs):
