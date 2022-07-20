@@ -59,7 +59,7 @@ class FolderCRUDAPITest(APITestCase):
         self.assertTrue(child_folder.is_child_of(self.root_folder))
 
     def test_create_folder_in_child_folder(self):
-        """ Testing the creation of a folder inside another folder other than root folder"""
+        """ Testing the creation of a folder inside another folder other than root folder """
         payload = {
             'name': 'folder_test_nested',
             'owner_user': self.user.pk
@@ -77,7 +77,7 @@ class FolderCRUDAPITest(APITestCase):
         self.assertEqual(child_folder.route, '1/test_1/')
 
     def test_update_name_file(self):
-        """ Testing the update name and the update of paths of the children folders"""
+        """ Testing the update name and the update of paths of the children folders """
 
         update_data = {
             'name': 'update_name',
@@ -95,8 +95,18 @@ class FolderCRUDAPITest(APITestCase):
         self.assertEqual(child_folder.route, '1/update_name/')
         self.assertTrue(child_folder.is_child_of(self.root_folder.get_first_child()))
 
+    def test_no_exists_pk_folder(self):
+        """ Testing a pk folder that does not exists """
+
+        url_list_children = reverse(URL_LIST_CHILDREN, kwargs={'pk': 100})
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        response = self.client.get(url_list_children)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_list_children_folders_in_root(self):
-        """ Testing the list of children folders in root"""
+        """ Testing the list of children folders in root """
 
         url_list_children = reverse(URL_LIST_CHILDREN, kwargs={'pk': self.root_folder.pk})
 
@@ -110,7 +120,7 @@ class FolderCRUDAPITest(APITestCase):
         self.assertEqual(response.data[2]['name'], 'test_file')
 
     def test_list_children_folders_in_nested_folder(self):
-        """ Testing the list of children folders in another folder different of root"""
+        """ Testing the list of children folders in another folder different of root """
 
         url_list_children = reverse(URL_LIST_CHILDREN, kwargs={'pk': self.test_folder.pk})
 

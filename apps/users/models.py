@@ -69,6 +69,21 @@ class User(AbstractUser, PermissionsMixin, BaseProjectModel):
         """
         return self.own_entity_directories.filter(pk=id_folder).exists()
 
+    def get_folder_by_id(self, id_folder: int) -> Optional[Folder]:
+        """
+            Return if the user is owner of the folder
+
+            Parameter:
+                id_folder(int): id of the folder to get
+
+            Return:
+                folder(Folder): Folder if exists, or None otherwise
+        """
+        try:
+            return self.own_entity_directories.get(pk=id_folder)
+        except Folder.DoesNotExist:
+            return None
+
 
 @receiver(post_save, sender=User)
 def assign_root_folder(sender, instance, created, *args, **kwargs):

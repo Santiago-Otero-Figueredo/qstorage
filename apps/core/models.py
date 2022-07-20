@@ -18,5 +18,11 @@ class BaseProjectModel(models.Model):
 
         try:
             return cls.objects.get(pk=id)
-        except BaseProjectModel.DoesNotExist:
+        except cls.DoesNotExist:
             return None
+
+    @classmethod
+    def exists_by_id(cls, id: int):
+
+        return cls.objects.filter(pk=id).exists()
+

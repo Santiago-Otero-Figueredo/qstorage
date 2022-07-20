@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 from django.conf import settings
 
 import os
+import shutil
 
 if TYPE_CHECKING:
     from ..models import Folder
@@ -52,9 +53,21 @@ def update_children_folders(folder_instance: 'Folder', rename_folder: bool = Tru
 
         os.rename(media_patch_children_folder, media_patch_parent_folder)
 
+    update_route_parent_folder_and_children(folder_instance)
+
+
+def update_route_parent_folder_and_children(folder_instance):
+
     children_folders = folder_instance.get_children()
     children_folders.update(route=f'{folder_instance.route}{folder_instance.name}/')
 
     if folder_instance.get_children_count() > 0:
         for children in children_folders:
             update_children_folders(children, rename_folder=False)
+
+
+def move_folders_in_media(path_actual_folder, path_new_parent_folder):
+    media_root_path = settings.MEDIA_ROOT
+    media_actual_folder = os.path.join(media_root_path, path_actual_folder)
+    media_new_parent_folder = os.path.join(media_root_path, path_new_parent_folder)
+    shutil.move(media_actual_folder, media_new_parent_folder)

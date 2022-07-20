@@ -7,7 +7,9 @@ from django.conf import settings
 
 from apps.core.models import BaseProjectModel
 
-from apps.directories.utils.folder_manager import update_children_folders
+from .utils.folder_manager import (update_children_folders,
+                                  update_route_parent_folder_and_children,
+                                  move_folders_in_media)
 
 # Create your models here.
 from treebeard.mp_tree import MP_Node
@@ -42,6 +44,7 @@ class Folder(MP_Node, BaseProjectModel):
 
     def __str__(self):
         return 'Category: {}'.format(self.name)
+
 
     @staticmethod
     def create_folder(owner_user: 'User', name: str) -> 'Folder':
@@ -104,6 +107,58 @@ class Folder(MP_Node, BaseProjectModel):
             return Folder.objects.filter(owner_user=user).first().get_root_nodes().first()
         except Folder.DoesNotExist:
             return None
+
+
+    @staticmethod
+    def move_folder_into_another(folder: 'Folder', new_parent_folder: 'Folder') -> bool:
+        """
+            Move a Folder with all its contents into another and return if the result of the action.
+
+            Parameters:
+                folder(Folder): The folder to be moved
+                new_parent_folder(Folder): The new parent folder where it will be moved
+        """
+        #try:
+        folder.move(new_parent_folder, pos='sorted-child')
+        old_path = folder.get_path_folder()
+        folder_update = Folder.objects.filter(pk=folder.pk)
+        folder_update.update(route=f'{new_parent_folder.route}{new_parent_folder.name}')
+        update_route_parent_folder_and_children(folder_update.first())
+        print("BROMITA: ", folder_update.first().get_path_folder())
+        move_folders_in_media(old_path, folder_update.first().get_path_folder())
+        return True
+        #except Exception:
+        #    return False
+
+
+    def get_path_parent_folder(self) -> str:
+        """
+            Return the path of the folder parent folder
+
+            Return:
+                path(str): path of the parent folder
+        """
+        user_path = f'{self.owner_user.pk}'
+        ancestors = self.get_ancestors().values_list('name', flat=True)
+
+        list_path = [user_path]
+
+        if ancestors:
+            list_path = list_path + ancestors[1::]
+
+        path_folder = "/".join(list_path)
+
+        return path_folder
+
+    def get_path_folder(self) -> str:
+        """
+            Return the path of the folder
+
+            Return:
+                path(str): path of the folder
+        """
+
+        return f'{self.get_path_parent_folder()}/{self.name}'
 
 
 @receiver(pre_save, sender=Folder)
