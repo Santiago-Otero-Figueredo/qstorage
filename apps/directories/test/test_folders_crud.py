@@ -56,18 +56,46 @@ class FolderCRUDAPITest(APITestCase):
 
         cls.test_2_folder = cls.root_folder.add_child(owner_user=cls.user, name='test_2', route='/')
         cls.test_folder_move = cls.root_folder.add_child(owner_user=cls.user, name='test_folder_move', route='/')
-        cls.test_new_folder_parent = cls.root_folder.add_child(owner_user=cls.user, name='test_new_folder_parent', route='/')
+        cls.test_new_folder_parent = cls.root_folder.add_child(
+            owner_user=cls.user,
+            name='test_new_folder_parent',
+            route='/'
+        )
 
         cls.nested_test_1_folder_1 = cls.test_folder.add_child(owner_user=cls.user, name='test_1_nested', route='/')
         cls.test_folder.add_child(owner_user=cls.user, name='test_2_nested', route='/')
 
-        cls.nested_test_folder_1 = cls.nested_test_1_folder_1.add_child(owner_user=cls.user, name='test_1_nested_1', route='/')
-        cls.nested_test_folder_2 = cls.nested_test_1_folder_1.add_child(owner_user=cls.user, name='test_2_nested_2', route='/')
-        cls.nested_test_folder_2_nested = cls.nested_test_folder_2.add_child(owner_user=cls.user, name='test_2_nested_1_nested', route='/')
+        cls.nested_test_folder_1 = cls.nested_test_1_folder_1.add_child(
+            owner_user=cls.user,
+            name='test_1_nested_1',
+            route='/'
+        )
+        cls.nested_test_folder_2 = cls.nested_test_1_folder_1.add_child(
+            owner_user=cls.user,
+            name='test_2_nested_2',
+            route='/'
+        )
+        cls.nested_test_folder_2_nested = cls.nested_test_folder_2.add_child(
+            owner_user=cls.user,
+            name='test_2_nested_1_nested',
+            route='/'
+        )
 
-        cls.test_folder_move_1 = cls.test_folder_move.add_child(owner_user=cls.user, name='test_folder_move_1', route='/')
-        cls.test_folder_move_2 = cls.test_folder_move.add_child(owner_user=cls.user, name='test_folder_move_2', route='/')
-        cls.test_folder_move_3 = cls.test_folder_move.add_child(owner_user=cls.user, name='test_folder_move_3', route='/')
+        cls.test_folder_move_1 = cls.test_folder_move.add_child(
+            owner_user=cls.user,
+            name='test_folder_move_1',
+            route='/'
+        )
+        cls.test_folder_move_2 = cls.test_folder_move.add_child(
+            owner_user=cls.user,
+            name='test_folder_move_2',
+            route='/'
+        )
+        cls.test_folder_move_3 = cls.test_folder_move.add_child(
+            owner_user=cls.user,
+            name='test_folder_move_3',
+            route='/'
+        )
 
     def test_create_folder_in_root(self):
         """ Testing the creation of a folder in the root folder """
@@ -303,7 +331,8 @@ class FolderCRUDAPITest(APITestCase):
         media_path_test_folder_moved = f'{media_path_new_parent_folder}/{test_folder_moved.name}'
         media_path_nested_test_folder_1_moved = f'{media_path_test_folder_moved}/{nested_test_folder_1_moved.name}'
         media_path_nested_test_folder_2_moved = f'{media_path_test_folder_moved}/{nested_test_folder_2_moved.name}'
-        media_path_nested_test_folder_2_nested_moved = f'{media_path_nested_test_folder_2_moved}/{nested_test_folder_2_nested_moved.name}'
+        media_path_nested_test_folder_2_nested_moved = f'{media_path_nested_test_folder_2_moved}/\
+            {nested_test_folder_2_nested_moved.name}'
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Validation of change path in database

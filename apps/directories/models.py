@@ -45,7 +45,6 @@ class Folder(MP_Node, BaseProjectModel):
     def __str__(self):
         return 'Category: {}'.format(self.name)
 
-
     @staticmethod
     def create_folder(owner_user: 'User', name: str) -> 'Folder':
         """
@@ -108,7 +107,6 @@ class Folder(MP_Node, BaseProjectModel):
         except Folder.DoesNotExist:
             return None
 
-
     @staticmethod
     def move_folder_into_another(folder: 'Folder', new_parent_folder: 'Folder') -> bool:
         """
@@ -130,7 +128,6 @@ class Folder(MP_Node, BaseProjectModel):
             return True
         except Exception:
             return False
-
 
     def get_path_parent_folder(self) -> str:
         """

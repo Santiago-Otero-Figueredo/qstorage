@@ -16,6 +16,7 @@ URL_LIST_CHILDREN = 'directories:folders-children-folders'
 URL_DETAIL_FOLDER = 'directories:folders-detail'
 URL_MOVE_FOLDER = 'directories:folders-move-folder'
 
+
 @override_settings(MEDIA_ROOT=settings.MEDIA_ROOT_TEST)
 class AuthenticationAPITestCase(APITestCase):
 

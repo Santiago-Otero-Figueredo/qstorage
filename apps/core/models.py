@@ -25,4 +25,3 @@ class BaseProjectModel(models.Model):
     def exists_by_id(cls, id: int):
 
         return cls.objects.filter(pk=id).exists()
-

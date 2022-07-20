@@ -1,4 +1,3 @@
-from requests import HTTPError
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
@@ -8,6 +7,7 @@ from apps.directories.models import Folder
 
 from .serializers import FolderCreateSerializer
 from .permissions import IsAuthenticatedOwnerUser
+
 
 class FolderVS(ModelViewSet):
 
@@ -56,7 +56,7 @@ class FolderVS(ModelViewSet):
         id_new_parent_folder = request.POST.get('new_parent_folder', None)
         if id_new_parent_folder is None:
             return Response(
-                {'message':'The new_parent_folder field is required.'},
+                {'message': 'The new_parent_folder field is required.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -64,7 +64,7 @@ class FolderVS(ModelViewSet):
 
         if new_parent_folder is None:
             return Response(
-                {'message':'The destination folder does not exists. Check it and try again'},
+                {'message': 'The destination folder does not exists. Check it and try again'},
                 status=status.HTTP_404_NOT_FOUND
             )
 
@@ -82,17 +82,11 @@ class FolderVS(ModelViewSet):
 
         if Folder.move_folder_into_another(actual_folder, new_parent_folder) is True:
             return Response(
-                {'message':'Folder moved successfully.'},
+                {'message': 'Folder moved successfully.'},
                 status=status.HTTP_200_OK
             )
         else:
             return Response(
-                {'message':'An error occurred while moving the folder.'},
+                {'message': 'An error occurred while moving the folder.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-
-
-
-
-
