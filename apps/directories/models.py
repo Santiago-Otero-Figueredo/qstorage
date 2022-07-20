@@ -129,6 +129,17 @@ class Folder(MP_Node, BaseProjectModel):
         except Exception:
             return False
 
+    def get_ancestors_folder(self) -> str:
+        """
+            Return ancestors folder
+
+            Return:
+                path(str): path of the parent folder
+        """
+        ancestors = self.get_ancestors().values_list('name', flat=True)
+
+        return ancestors
+
     def get_path_parent_folder(self) -> str:
         """
             Return the path of the folder parent folder
@@ -137,7 +148,7 @@ class Folder(MP_Node, BaseProjectModel):
                 path(str): path of the parent folder
         """
         user_path = f'{self.owner_user.pk}'
-        ancestors = self.get_ancestors().values_list('name', flat=True)
+        ancestors = self.get_ancestors_folder()
 
         list_path = [user_path]
 
@@ -164,15 +175,9 @@ def pre_save_assign_root_folder(sender, instance, *args, **kwargs):
 
     media_root_path = settings.MEDIA_ROOT
 
-    user_path = f'{instance.owner_user.pk}'
-    ancestors = instance.get_ancestors().values_list('name', flat=True)
+    ancestors = instance.get_ancestors_folder()
 
-    list_path = [user_path]
-
-    if ancestors:
-        list_path = list_path + ancestors[1::]
-
-    path_folder = "/".join(list_path)
+    path_folder = instance.get_path_parent_folder()
 
     media_patch_folder = os.path.join(media_root_path, path_folder)
     if ancestors:
