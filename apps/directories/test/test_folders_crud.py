@@ -11,9 +11,12 @@ from apps.directories.models import Folder
 
 from shutil import rmtree
 
+import os.path
+
 URL_CREATE_FOLDER = 'directories:folders-create-folder'
 URL_LIST_CHILDREN = 'directories:folders-children-folders'
 URL_DETAIL_FOLDER = 'directories:folders-detail'
+URL_MOVE_FOLDER = 'directories:folders-move-folder'
 
 
 @override_settings(MEDIA_ROOT=settings.MEDIA_ROOT_TEST)
@@ -21,6 +24,22 @@ class FolderCRUDAPITest(APITestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
+        """
+        Initial structure of directories for the testing
+            |- / (root)
+                |- test_1
+                    |- test_1_nested
+                        |- test_1_nested_1
+                        |- test_1_nested_2
+                            |- test_2_nested_1_nested
+                    |- test_2_nested
+                |- test_2
+                |- test_folder_move
+                    |- test_folder_move_1
+                    |- test_folder_move_2
+                    |- test_folder_move_3
+                |- test_new_folder_parent
+        """
         super(FolderCRUDAPITest, cls).setUpClass()
         cls.user = get_user_model().objects.create(
             pk=1,
@@ -35,11 +54,20 @@ class FolderCRUDAPITest(APITestCase):
         cls.root_folder = Folder.get_root_folder_by_user(cls.user)
         cls.test_folder = cls.root_folder.add_child(owner_user=cls.user, name='test_1', route='/')
 
-        cls.root_folder.add_child(owner_user=cls.user, name='test_2', route='/')
-        cls.root_folder.add_child(owner_user=cls.user, name='test_file', route='/')
+        cls.test_2_folder = cls.root_folder.add_child(owner_user=cls.user, name='test_2', route='/')
+        cls.test_folder_move = cls.root_folder.add_child(owner_user=cls.user, name='test_folder_move', route='/')
+        cls.test_new_folder_parent = cls.root_folder.add_child(owner_user=cls.user, name='test_new_folder_parent', route='/')
 
-        cls.nested_test_folder = cls.test_folder.add_child(owner_user=cls.user, name='test_1_nested', route='/')
-        cls.nested_test_folder = cls.test_folder.add_child(owner_user=cls.user, name='test_2_nested', route='/')
+        cls.nested_test_1_folder_1 = cls.test_folder.add_child(owner_user=cls.user, name='test_1_nested', route='/')
+        cls.test_folder.add_child(owner_user=cls.user, name='test_2_nested', route='/')
+
+        cls.nested_test_folder_1 = cls.nested_test_1_folder_1.add_child(owner_user=cls.user, name='test_1_nested_1', route='/')
+        cls.nested_test_folder_2 = cls.nested_test_1_folder_1.add_child(owner_user=cls.user, name='test_2_nested_2', route='/')
+        cls.nested_test_folder_2_nested = cls.nested_test_folder_2.add_child(owner_user=cls.user, name='test_2_nested_1_nested', route='/')
+
+        cls.test_folder_move_1 = cls.test_folder_move.add_child(owner_user=cls.user, name='test_folder_move_1', route='/')
+        cls.test_folder_move_2 = cls.test_folder_move.add_child(owner_user=cls.user, name='test_folder_move_2', route='/')
+        cls.test_folder_move_3 = cls.test_folder_move.add_child(owner_user=cls.user, name='test_folder_move_3', route='/')
 
     def test_create_folder_in_root(self):
         """ Testing the creation of a folder in the root folder """
@@ -117,7 +145,7 @@ class FolderCRUDAPITest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data[0]['name'], 'test_1')
         self.assertEqual(response.data[1]['name'], 'test_2')
-        self.assertEqual(response.data[2]['name'], 'test_file')
+        self.assertEqual(response.data[2]['name'], 'test_folder_move')
 
     def test_list_children_folders_in_nested_folder(self):
         """ Testing the list of children folders in another folder different of root """
@@ -131,6 +159,76 @@ class FolderCRUDAPITest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data[0]['name'], 'test_1_nested')
         self.assertEqual(response.data[1]['name'], 'test_2_nested')
+
+    def test_move_folder_without_children(self):
+        """ Testing to move a folder without children to another folder"""
+
+        payload = {
+            'new_parent_folder': self.test_2_folder.pk
+        }
+
+        url_move_folder = reverse(
+            URL_MOVE_FOLDER,
+            kwargs={'pk': self.test_folder_move_3.pk}
+        )
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        response = self.client.post(url_move_folder, payload)
+
+        test_folder_moved = Folder.get_by_id(self.test_folder_move_3.pk)
+        media_path = f'{settings.MEDIA_ROOT_TEST}{self.test_2_folder.get_path_folder()}/{test_folder_moved.name}'
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Validation of change path in database
+        self.assertEqual(test_folder_moved.get_parent().name, self.test_2_folder.name)
+        self.assertEqual(test_folder_moved.get_path_parent_folder(), self.test_2_folder.get_path_folder())
+        # Validation of changes in inheritance database
+        self.assertTrue(test_folder_moved.is_child_of(self.test_2_folder))
+        # Validation of folders move in media folder
+        self.assertTrue(os.path.exists(media_path))
+
+    def test_move_folder_with_children(self):
+        """ Testing to move a folder with children to another folder"""
+
+        payload = {
+            'new_parent_folder': self.test_new_folder_parent.pk
+        }
+
+        url_move_folder = reverse(
+            URL_MOVE_FOLDER,
+            kwargs={'pk': self.nested_test_1_folder_1.pk}
+        )
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        response = self.client.post(url_move_folder, payload)
+
+        test_folder_moved = Folder.get_by_id(self.nested_test_1_folder_1.pk)
+        nested_test_folder_1_moved = Folder.get_by_id(self.nested_test_folder_1.pk)
+        nested_test_folder_2_moved = Folder.get_by_id(self.nested_test_folder_2.pk)
+        nested_test_folder_2_nested_moved = Folder.get_by_id(self.nested_test_folder_2_nested.pk)
+
+        media_path_new_parent_folder = f'{settings.MEDIA_ROOT_TEST}{self.test_new_folder_parent.get_path_folder()}'
+
+        media_path_test_folder_moved = f'{media_path_new_parent_folder}/{test_folder_moved.name}'
+        media_path_nested_test_folder_1_moved = f'{media_path_test_folder_moved}/{nested_test_folder_1_moved.name}'
+        media_path_nested_test_folder_2_moved = f'{media_path_test_folder_moved}/{nested_test_folder_2_moved.name}'
+        media_path_nested_test_folder_2_nested_moved = f'{media_path_nested_test_folder_2_moved}/{nested_test_folder_2_nested_moved.name}'
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Validation of change path in database
+        self.assertEqual(test_folder_moved.get_parent().name, self.test_new_folder_parent.name)
+        self.assertEqual(test_folder_moved.get_path_parent_folder(), self.test_new_folder_parent.get_path_folder())
+        # Validation of changes in inheritance database
+        self.assertTrue(test_folder_moved.is_child_of(self.test_new_folder_parent))
+        self.assertTrue(nested_test_folder_1_moved.is_descendant_of(self.test_new_folder_parent))
+        self.assertTrue(nested_test_folder_2_moved.is_descendant_of(self.test_new_folder_parent))
+        self.assertTrue(nested_test_folder_2_nested_moved.is_descendant_of(self.test_new_folder_parent))
+        # Validation of folders move in media folder
+        self.assertTrue(os.path.exists(media_path_test_folder_moved))
+        self.assertTrue(os.path.exists(media_path_nested_test_folder_1_moved))
+        self.assertTrue(os.path.exists(media_path_nested_test_folder_2_moved))
+        self.assertTrue(os.path.exists(media_path_nested_test_folder_2_nested_moved))
+
 
     @classmethod
     def tearDownClass(cls):
