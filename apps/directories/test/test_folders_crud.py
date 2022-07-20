@@ -39,6 +39,15 @@ class FolderCRUDAPITest(APITestCase):
                     |- test_folder_move_2
                     |- test_folder_move_3
                 |- test_new_folder_parent
+                |- test_leaf_folder
+                |- test_update_folder
+                    |- test_update_nested_1
+                        |- child_1_update_1
+                        |- child_2_update_1
+                    |- test_update_nested_2
+                        |- child_1_update_2
+                            |- child_1_update_2_nested
+                    |- test_update_nested_3
         """
         super(FolderCRUDAPITest, cls).setUpClass()
         cls.user = get_user_model().objects.create(
@@ -56,11 +65,13 @@ class FolderCRUDAPITest(APITestCase):
 
         cls.test_2_folder = cls.root_folder.add_child(owner_user=cls.user, name='test_2', route='/')
         cls.test_folder_move = cls.root_folder.add_child(owner_user=cls.user, name='test_folder_move', route='/')
+        cls.leaf_folder = cls.root_folder.add_child(owner_user=cls.user, name='test_leaf_folder', route='/')
         cls.test_new_folder_parent = cls.root_folder.add_child(
             owner_user=cls.user,
             name='test_new_folder_parent',
             route='/'
         )
+        cls.test_update_folder = cls.root_folder.add_child(owner_user=cls.user, name='test_update_folder', route='/')
 
         cls.nested_test_1_folder_1 = cls.test_folder.add_child(owner_user=cls.user, name='test_1_nested', route='/')
         cls.test_folder.add_child(owner_user=cls.user, name='test_2_nested', route='/')
@@ -94,6 +105,44 @@ class FolderCRUDAPITest(APITestCase):
         cls.test_folder_move_3 = cls.test_folder_move.add_child(
             owner_user=cls.user,
             name='test_folder_move_3',
+            route='/'
+        )
+
+        cls.test_update_nested_1 = cls.test_update_folder.add_child(
+            owner_user=cls.user,
+            name='test_update_nested_1',
+            route='/'
+        )
+        cls.test_update_nested_2 = cls.test_update_folder.add_child(
+            owner_user=cls.user,
+            name='test_update_nested_2',
+            route='/'
+        )
+        cls.test_update_nested_3 = cls.test_update_folder.add_child(
+            owner_user=cls.user,
+            name='test_update_nested_3',
+            route='/'
+        )
+
+        cls.child_1_update_1 = cls.test_update_nested_1.add_child(
+            owner_user=cls.user,
+            name='child_1_update_1',
+            route='/'
+        )
+        cls.child_2_update_1 = cls.test_update_nested_1.add_child(
+            owner_user=cls.user,
+            name='child_2_update_1',
+            route='/'
+        )
+
+        cls.child_1_update_2 = cls.test_update_nested_2.add_child(
+            owner_user=cls.user,
+            name='child_1_update_2',
+            route='/'
+        )
+        cls.child_1_child_1_update_2 = cls.child_1_update_2.add_child(
+            owner_user=cls.user,
+            name='child_1_update_2_nested',
             route='/'
         )
 
@@ -150,6 +199,121 @@ class FolderCRUDAPITest(APITestCase):
         self.assertEqual(self.root_folder.get_first_child().name, 'update_name')
         self.assertEqual(child_folder.route, '1/update_name/')
         self.assertTrue(child_folder.is_child_of(self.root_folder.get_first_child()))
+
+    def test_update_name_leaf_folder_in_root(self):
+        """ Testing the update name and the update of paths of the leaf folder in root """
+
+        update_data = {
+            'name': 'update_name_leaf',
+        }
+
+        url_detail_folder = reverse(URL_DETAIL_FOLDER, kwargs={'pk': self.leaf_folder.pk})
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        response = self.client.patch(url_detail_folder, update_data)
+        leaf_folder_update = Folder.get_by_id(self.leaf_folder.pk)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(leaf_folder_update.name, 'update_name_leaf')
+        self.assertEqual(leaf_folder_update.route, '1/')
+        self.assertTrue(leaf_folder_update.is_child_of(self.root_folder))
+
+    def test_update_name_leaf_folder_in_parent(self):
+        """ Testing the update name and the update of paths of the leaf folder in a parent folder """
+
+        update_data = {
+            'name': 'update_name_leaf_folder',
+        }
+
+        url_detail_folder = reverse(URL_DETAIL_FOLDER, kwargs={'pk': self.test_update_nested_3.pk})
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        response = self.client.patch(url_detail_folder, update_data)
+        folder_update = Folder.get_by_id(self.test_update_nested_3.pk)
+
+        media_path_parent_folder = f'{settings.MEDIA_ROOT_TEST}{self.test_update_folder.get_path_folder()}'
+        media_path_folder = f'{media_path_parent_folder}/{folder_update.name}'
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Validation of change path in database
+        self.assertEqual(folder_update.name, 'update_name_leaf_folder')
+        self.assertEqual(folder_update.route, '1/test_update_folder/')
+        # Validation of changes in inheritance database
+        self.assertTrue(folder_update.is_child_of(self.test_update_folder))
+        # Validation of folders update name in media folder
+        self.assertTrue(os.path.exists(media_path_folder))
+
+    def test_update_name_child_folder_in_parent(self):
+        """ Testing the update name and the update of paths of the children folders in
+        children folder of a parent folder"""
+
+        update_data = {
+            'name': 'update_name_child_folder',
+        }
+
+        url_detail_folder = reverse(URL_DETAIL_FOLDER, kwargs={'pk': self.child_1_update_2.pk})
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        response = self.client.patch(url_detail_folder, update_data)
+        folder_update = Folder.get_by_id(self.child_1_update_2.pk)
+
+        child_folder_update = Folder.get_by_id(self.child_1_child_1_update_2.pk)
+
+        media_path_parent_folder = f'{settings.MEDIA_ROOT_TEST}{self.test_update_nested_2.get_path_folder()}'
+        media_path_folder_update = f'{media_path_parent_folder}/{folder_update.name}'
+
+        media_path_child_folder = f'{media_path_folder_update}/{child_folder_update.name}'
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Validation of change path in database
+        self.assertEqual(folder_update.name, 'update_name_child_folder')
+        self.assertEqual(folder_update.route, '1/test_update_folder/test_update_nested_2/')
+        # Validation of changes in inheritance database
+        self.assertTrue(folder_update.is_child_of(self.test_update_nested_2))
+        self.assertTrue(child_folder_update.is_child_of(folder_update))
+        # Validation of folders update name in media folder
+        self.assertTrue(os.path.exists(media_path_folder_update))
+        self.assertTrue(os.path.exists(media_path_child_folder))
+
+    def test_update_name_parent_folder(self):
+        """ Testing the update name and the update of paths of the children folders in
+        parent folder of a many folder"""
+
+        update_data = {
+            'name': 'update_name_parent_folder',
+        }
+
+        url_detail_folder = reverse(URL_DETAIL_FOLDER, kwargs={'pk': self.test_update_folder.pk})
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        response = self.client.patch(url_detail_folder, update_data)
+        folder_update = Folder.get_by_id(self.test_update_folder.pk)
+
+        child_folder_update_1 = Folder.get_by_id(self.test_update_nested_1.pk)
+        child_folder_update_2 = Folder.get_by_id(self.test_update_nested_2.pk)
+        nested_child_update_2 = Folder.get_by_id(self.child_1_child_1_update_2.pk)
+
+        media_path_parent_folder = f'{settings.MEDIA_ROOT_TEST}{self.root_folder.get_path_folder()}'
+        media_path_folder_update = f'{media_path_parent_folder}/{folder_update.name}'
+
+        media_path_update_1 = f'{media_path_folder_update}/{child_folder_update_1.name}'
+        media_path_update_2 = f'{media_path_folder_update}/{child_folder_update_2.name}'
+        media_nested_child_update_2 = f'{media_path_update_2}/update_name_child_folder/{nested_child_update_2.name}'
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Validation of change path in database
+        self.assertEqual(folder_update.name, 'update_name_parent_folder')
+        self.assertEqual(folder_update.route, '1/')
+        # Validation of changes in inheritance database
+        self.assertTrue(folder_update.is_child_of(self.root_folder))
+        self.assertTrue(child_folder_update_1.is_child_of(self.test_update_folder))
+        self.assertTrue(child_folder_update_2.is_child_of(self.test_update_folder))
+        self.assertTrue(nested_child_update_2.is_descendant_of(self.test_update_folder))
+        # Validation of folders update name in media folder
+        self.assertTrue(os.path.exists(media_path_folder_update))
+        self.assertTrue(os.path.exists(media_path_update_1))
+        self.assertTrue(os.path.exists(media_path_update_2))
+        self.assertTrue(os.path.exists(media_nested_child_update_2))
 
     def test_no_exists_pk_folder(self):
         """ Testing a pk folder that does not exists """
@@ -331,8 +495,7 @@ class FolderCRUDAPITest(APITestCase):
         media_path_test_folder_moved = f'{media_path_new_parent_folder}/{test_folder_moved.name}'
         media_path_nested_test_folder_1_moved = f'{media_path_test_folder_moved}/{nested_test_folder_1_moved.name}'
         media_path_nested_test_folder_2_moved = f'{media_path_test_folder_moved}/{nested_test_folder_2_moved.name}'
-        media_path_nested_test_folder_2_nested_moved = f'{media_path_nested_test_folder_2_moved}/\
-            {nested_test_folder_2_nested_moved.name}'
+        media_path_children_test_2 = f'{media_path_nested_test_folder_2_moved}/{nested_test_folder_2_nested_moved.name}'
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Validation of change path in database
@@ -347,7 +510,7 @@ class FolderCRUDAPITest(APITestCase):
         self.assertTrue(os.path.exists(media_path_test_folder_moved))
         self.assertTrue(os.path.exists(media_path_nested_test_folder_1_moved))
         self.assertTrue(os.path.exists(media_path_nested_test_folder_2_moved))
-        self.assertTrue(os.path.exists(media_path_nested_test_folder_2_nested_moved))
+        self.assertTrue(os.path.exists(media_path_children_test_2))
 
     @classmethod
     def tearDownClass(cls):
