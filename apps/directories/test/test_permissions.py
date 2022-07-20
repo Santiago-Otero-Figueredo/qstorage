@@ -14,13 +14,25 @@ from shutil import rmtree
 URL_CREATE_FOLDER = 'directories:folders-create-folder'
 URL_LIST_CHILDREN = 'directories:folders-children-folders'
 URL_DETAIL_FOLDER = 'directories:folders-detail'
-
+URL_MOVE_FOLDER = 'directories:folders-move-folder'
 
 @override_settings(MEDIA_ROOT=settings.MEDIA_ROOT_TEST)
 class PermissionsAPITestCase(APITestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
+        """
+            Initial structure of directories for the testing
+                |- 20/ (user_1)
+                    |- user_1_test_1
+                        |- user_1_test_1_nested
+                        |- user_1_test_2_nested
+                    |- user_1_test_2
+                    |- user_1_test_3
+                |- 21/ (user_2)
+                    |- user_2_test_1
+
+        """
         super(PermissionsAPITestCase, cls).setUpClass()
         cls.user_1 = get_user_model().objects.create(
             pk=20,
@@ -72,7 +84,7 @@ class PermissionsAPITestCase(APITestCase):
         )
 
         cls.root_folder_2 = Folder.get_root_folder_by_user(cls.user_2)
-        cls.user_1_test_folder_2 = cls.root_folder_2.add_child(
+        cls.user_2_test_folder_1 = cls.root_folder_2.add_child(
             owner_user=cls.user_2,
             name='user_2_test_1',
             route='/'
@@ -134,6 +146,24 @@ class PermissionsAPITestCase(APITestCase):
         response = self.client.patch(url_update_folders, update_data)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_move_folder_not_user_owner(self):
+        """ Testing the permissions for move folder. The user only can move
+        if he is the owner of it """
+
+        payload = {
+            'new_parent_folder': self.user_2_test_folder_1.pk
+        }
+
+        url_move_folder = reverse(
+            URL_MOVE_FOLDER,
+            kwargs={'pk': self.user_1_test_folder_1.pk}
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token_1}')
+
+        response = self.client.post(url_move_folder, payload)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     @classmethod
     def tearDownClass(cls):

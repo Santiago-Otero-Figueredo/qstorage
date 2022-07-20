@@ -14,13 +14,22 @@ from shutil import rmtree
 URL_CREATE_FOLDER = 'directories:folders-create-folder'
 URL_LIST_CHILDREN = 'directories:folders-children-folders'
 URL_DETAIL_FOLDER = 'directories:folders-detail'
-
+URL_MOVE_FOLDER = 'directories:folders-move-folder'
 
 @override_settings(MEDIA_ROOT=settings.MEDIA_ROOT_TEST)
 class AuthenticationAPITestCase(APITestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
+        """
+            Initial structure of directories for the testing
+                |- / (root)
+                    |- user_1_test_1
+                        |- user_1_test_1_nested
+                        |- user_1_test_2_nested
+                    |- user_1_test_2
+                    |- user_1_test_3
+        """
         super(AuthenticationAPITestCase, cls).setUpClass()
         cls.user_1 = get_user_model().objects.create(
             pk=10,
@@ -95,6 +104,22 @@ class AuthenticationAPITestCase(APITestCase):
         url_update_folders = reverse(URL_DETAIL_FOLDER, kwargs={'pk': self.root_folder_1.pk})
 
         response = self.client.patch(url_update_folders, update_data)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_move_folder_not_authenticated(self):
+        """ Testing the authorization for move folder action. The user have to be log in """
+
+        payload = {
+            'new_parent_folder': self.user_1_test_folder_1.pk
+        }
+
+        url_move_folder = reverse(
+            URL_MOVE_FOLDER,
+            kwargs={'pk': self.user_1_nested_test_folder_2.pk}
+        )
+
+        response = self.client.patch(url_move_folder, payload)
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 

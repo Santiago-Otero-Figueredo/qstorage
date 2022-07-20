@@ -160,6 +160,97 @@ class FolderCRUDAPITest(APITestCase):
         self.assertEqual(response.data[0]['name'], 'test_1_nested')
         self.assertEqual(response.data[1]['name'], 'test_2_nested')
 
+    def test_move_folder_method_not_allowed(self):
+        """ Testing not allow methods in function """
+
+        payload = {
+            'new_parent_folder': self.test_folder_move.pk
+        }
+
+        url_move_folder = reverse(
+            URL_MOVE_FOLDER,
+            kwargs={'pk': self.test_folder_move_3.pk}
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+
+        response_1 = self.client.get(url_move_folder, payload)
+        response_2 = self.client.delete(url_move_folder, payload)
+        response_3 = self.client.put(url_move_folder, payload)
+        response_4 = self.client.patch(url_move_folder, payload)
+
+        self.assertEqual(response_1.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(response_2.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(response_3.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(response_4.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_move_folder_missing_field(self):
+        """ Testing the validation of required new_parent_folder field """
+
+        payload = {}
+
+        url_move_folder = reverse(
+            URL_MOVE_FOLDER,
+            kwargs={'pk': self.test_folder_move_3.pk}
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+
+        response = self.client.post(url_move_folder, payload)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_move_folder_not_exists_folder(self):
+        """ Testing the validation of required new parent folder exists """
+
+        payload = {
+            'new_parent_folder': 1000
+        }
+
+        url_move_folder = reverse(
+            URL_MOVE_FOLDER,
+            kwargs={'pk': self.test_folder_move_3.pk}
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+
+        response = self.client.post(url_move_folder, payload)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_move_folder_not_actual_parent_folder_different_of_new_parent_folder(self):
+        """ Testing the validation of precondition:
+         new parent folder must be different of actual parent folder """
+
+        payload = {
+            'new_parent_folder': self.test_folder_move.pk
+        }
+
+        url_move_folder = reverse(
+            URL_MOVE_FOLDER,
+            kwargs={'pk': self.test_folder_move_3.pk}
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+
+        response = self.client.post(url_move_folder, payload)
+
+        self.assertEqual(response.status_code, status.HTTP_412_PRECONDITION_FAILED)
+
+    def test_move_folder_not_actual_folder_different_of_new_parent_folder(self):
+        """ Testing the validation of precondition:
+         new parent folder must be different of actual folder """
+
+        payload = {
+            'new_parent_folder': self.test_folder_move_3.pk
+        }
+
+        url_move_folder = reverse(
+            URL_MOVE_FOLDER,
+            kwargs={'pk': self.test_folder_move_3.pk}
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+
+        response = self.client.post(url_move_folder, payload)
+
+        self.assertEqual(response.status_code, status.HTTP_412_PRECONDITION_FAILED)
+
     def test_move_folder_without_children(self):
         """ Testing to move a folder without children to another folder"""
 
@@ -228,7 +319,6 @@ class FolderCRUDAPITest(APITestCase):
         self.assertTrue(os.path.exists(media_path_nested_test_folder_1_moved))
         self.assertTrue(os.path.exists(media_path_nested_test_folder_2_moved))
         self.assertTrue(os.path.exists(media_path_nested_test_folder_2_nested_moved))
-
 
     @classmethod
     def tearDownClass(cls):
