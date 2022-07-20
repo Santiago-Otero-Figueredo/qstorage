@@ -118,17 +118,18 @@ class Folder(MP_Node, BaseProjectModel):
                 folder(Folder): The folder to be moved
                 new_parent_folder(Folder): The new parent folder where it will be moved
         """
-        #try:
-        folder.move(new_parent_folder, pos='sorted-child')
-        old_path = folder.get_path_folder()
-        folder_update = Folder.objects.filter(pk=folder.pk)
-        folder_update.update(route=f'{new_parent_folder.route}{new_parent_folder.name}')
-        update_route_parent_folder_and_children(folder_update.first())
-        print("BROMITA: ", folder_update.first().get_path_folder())
-        move_folders_in_media(old_path, folder_update.first().get_path_folder())
-        return True
-        #except Exception:
-        #    return False
+        try:
+            folder.move(new_parent_folder, pos='sorted-child')
+            old_path = folder.get_path_folder()
+
+            folder_update = Folder.objects.filter(pk=folder.pk)
+            folder_update.update(route=f'{new_parent_folder.route}{new_parent_folder.name}')
+
+            update_route_parent_folder_and_children(folder_update.first())
+            move_folders_in_media(old_path, folder_update.first().get_path_folder())
+            return True
+        except Exception:
+            return False
 
 
     def get_path_parent_folder(self) -> str:
