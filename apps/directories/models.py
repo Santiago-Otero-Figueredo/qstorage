@@ -173,6 +173,18 @@ class Folder(MP_Node, BaseProjectModel):
             for children in children_folders:
                 children.update_route_parent_folder_and_children()
 
+    def disable_folder_and_children(self) -> None:
+        """ Disable the actual folder an his children"""
+        folder = Folder.get_element_by_id_like_queryset(self.pk)
+        folder.update(is_active=False)
+        self.get_children().update(is_active=False)
+
+    def activate_folder_and_children(self) -> None:
+        """ Activate the actual folder an his children"""
+        folder = Folder.get_element_by_id_like_queryset(self.pk)
+        folder.update(is_active=True)
+        self.get_children().update(is_active=True)
+
 
 @receiver(pre_save, sender=Folder)
 def pre_save_assign_root_folder(sender, instance, *args, **kwargs):

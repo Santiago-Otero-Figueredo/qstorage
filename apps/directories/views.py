@@ -13,6 +13,7 @@ class FolderVS(ModelViewSet):
 
     serializer_class = FolderCreateSerializer
     permission_classes = [IsAuthenticatedOwnerUser]
+    http_method_names = ['get', 'patch', 'post']
 
     def get_queryset(self):
         return self.request.user.own_entity_directories.all()
@@ -96,3 +97,27 @@ class FolderVS(ModelViewSet):
                 {'message': 'An error occurred while moving the folder.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+    @action(detail=True, methods=['patch'], url_path='disable-folder',
+            url_name='disable-folder', permission_classes=[IsAuthenticatedOwnerUser])
+    def disable_folder(self, request, pk):
+        """ move folder to the recycle bin and prepare for his elimination """
+        element = self.get_object()
+        try:
+            folder = Folder.get_by_id(element.pk)
+            folder.disable_folder_and_children()
+            return Response({'message': 'Folder and children moved to recycle bin. Will be delete in 3 days'})
+        except Exception:
+            return Response({'message': 'An error has occurred'}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['patch'], url_path='recover-folder',
+            url_name='recover-folder', permission_classes=[IsAuthenticatedOwnerUser])
+    def recover_folder(self, request, pk):
+        """ move folder to the recycle bin and prepare for his elimination """
+        element = self.get_object()
+        try:
+            folder = Folder.get_by_id(element.pk)
+            folder.activate_folder_and_children()
+            return Response({'message': 'Folder and children recover successfully'})
+        except Exception:
+            return Response({'message': 'An error has occurred'}, status=status.HTTP_400_BAD_REQUEST)

@@ -8,7 +8,7 @@ class FolderCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Folder
-        fields = ('name',)
+        fields = ('name', 'is_active')
 
     def save(self, **kwargs):
         method = self.context.get('method')
@@ -18,6 +18,8 @@ class FolderCreateSerializer(serializers.ModelSerializer):
             return super().save(**kwargs)
 
         pay_load = ({**self.validated_data, 'owner_user': owner_user, **kwargs, 'parent_folder': self.instance})
+
+        pay_load.pop('is_active')
 
         return Folder.create_folder_and_assign_to_parent(**pay_load)
 

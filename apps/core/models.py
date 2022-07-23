@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import QuerySet
 
 
 class BaseProjectModel(models.Model):
@@ -25,3 +26,8 @@ class BaseProjectModel(models.Model):
     def exists_by_id(cls, id: int):
 
         return cls.objects.filter(pk=id).exists()
+
+    @classmethod
+    def get_element_by_id_like_queryset(cls, id: int) -> QuerySet['BaseProjectModel']:
+
+        return cls.objects.filter(pk=id)
