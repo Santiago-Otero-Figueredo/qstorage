@@ -27,6 +27,7 @@ class FolderCRUDAPITest(APITestCase):
         """
         Initial structure of directories for the testing
             |- / (root)
+                |- test_1_nested_1
                 |- test_1
                     |- test_1_nested
                         |- test_1_nested_1
@@ -38,8 +39,8 @@ class FolderCRUDAPITest(APITestCase):
                     |- test_folder_move_1
                     |- test_folder_move_2
                     |- test_folder_move_3
-                |- test_new_folder_parent
                 |- test_leaf_folder
+                |- test_new_folder_parent
                 |- test_update_folder
                     |- test_update_nested_1
                         |- child_1_update_1
@@ -61,6 +62,8 @@ class FolderCRUDAPITest(APITestCase):
 
         cls.token, _ = Token.objects.get_or_create(user=cls.user)
         cls.root_folder = Folder.get_root_folder_by_user(cls.user)
+        cls.test_same_name = cls.root_folder.add_child(owner_user=cls.user, name='test_1_nested_1', route='/')
+
         cls.test_folder = cls.root_folder.add_child(owner_user=cls.user, name='test_1', route='/')
 
         cls.test_2_folder = cls.root_folder.add_child(owner_user=cls.user, name='test_2', route='/')
@@ -336,8 +339,12 @@ class FolderCRUDAPITest(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data[0]['name'], 'test_1')
-        self.assertEqual(response.data[1]['name'], 'test_2')
-        self.assertEqual(response.data[2]['name'], 'test_folder_move')
+        self.assertEqual(response.data[1]['name'], 'test_1_nested_1')
+        self.assertEqual(response.data[2]['name'], 'test_2')
+        self.assertEqual(response.data[3]['name'], 'test_folder_move')
+        self.assertEqual(response.data[4]['name'], 'test_leaf_folder')
+        self.assertEqual(response.data[5]['name'], 'test_new_folder_parent')
+        self.assertEqual(response.data[6]['name'], 'test_update_folder')
 
     def test_list_children_folders_in_nested_folder(self):
         """ Testing the list of children folders in another folder different of root """
@@ -436,6 +443,25 @@ class FolderCRUDAPITest(APITestCase):
         url_move_folder = reverse(
             URL_MOVE_FOLDER,
             kwargs={'pk': self.test_folder_move_3.pk}
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+
+        response = self.client.post(url_move_folder, payload)
+
+        self.assertEqual(response.status_code, status.HTTP_412_PRECONDITION_FAILED)
+
+    def test_move_folder_not_different_name_folder_children(self):
+        """ Testing the validation of precondition:
+         the actual folder must to have a different name of the children folders
+         in th new parent folder """
+
+        payload = {
+            'new_parent_folder': self.nested_test_1_folder_1.pk
+        }
+
+        url_move_folder = reverse(
+            URL_MOVE_FOLDER,
+            kwargs={'pk': self.test_same_name.pk}
         )
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
 

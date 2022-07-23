@@ -70,13 +70,19 @@ class FolderVS(ModelViewSet):
 
         if new_parent_folder.pk == actual_folder.get_parent().pk:
             return Response(
-                {'message': 'The new folder to be moved to must be diferente than current parent folder'},
+                {'message': 'The new folder to be moved to must be different than current parent folder'},
                 status=status.HTTP_412_PRECONDITION_FAILED
             )
 
         if new_parent_folder.pk == actual_folder.pk:
             return Response(
-                {'message': 'The new folder to be moved to must be diferente than current folder'},
+                {'message': 'The new folder to be moved to must be different than current folder'},
+                status=status.HTTP_412_PRECONDITION_FAILED
+            )
+
+        if actual_folder.name in new_parent_folder.get_children_folder():
+            return Response(
+                {'message': 'The new folder to be moved to must be different name of the children folder'},
                 status=status.HTTP_412_PRECONDITION_FAILED
             )
 

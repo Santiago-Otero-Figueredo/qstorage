@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from django.conf import settings
 
@@ -9,61 +9,81 @@ if TYPE_CHECKING:
     from ..models import Folder
 
 
-def create_folder(folder_instance: 'Folder') -> None:
+class FolderManager():
 
-    media_root_path = settings.MEDIA_ROOT
+    def __init__(self, folder: 'Folder', *args, **kwargs) -> None:
+        self.media_root_path = settings.MEDIA_ROOT
+        self.folder = folder
 
-    user_path = f'{folder_instance.owner_user.pk}'
-    ancestors = folder_instance.get_ancestors().values_list('name', flat=True)
-
-    list_path = [user_path]
-
-    if ancestors:
-        list_path = list_path + ancestors[1::] + [folder_instance.name]
-
-    path_folder = "/".join(list_path)
-    media_patch_folder = os.path.join(media_root_path, path_folder)
-
-    os.umask(0)
-    os.makedirs(media_patch_folder, mode=0o777)
-
-    folder_instance.route = f'{path_folder}/'
-
-
-def update_children_folders(folder_instance: 'Folder', rename_folder: bool = True) -> None:
-
-    if rename_folder:
-        media_root_path = settings.MEDIA_ROOT
-
-        if folder_instance.is_leaf():
-            route_children = folder_instance.route.split('/')
+    def __get_old_path_folder(self) -> str:
+        """
+            Return the path
+        """
+        if self.folder.is_leaf():
+            route_children = self.folder.route.split('/')
         else:
-            first_children = folder_instance.get_first_child()
+            first_children = self.folder.get_first_child()
             route_children = first_children.route.split('/')
 
         route_children = route_children[:-1]
         old_path_children = "/".join(route_children)
 
-        media_patch_children_folder = os.path.join(media_root_path, old_path_children)
+        return old_path_children
 
-        if folder_instance.is_leaf() and not folder_instance.is_root():
-            media_patch_children_folder = os.path.join(media_patch_children_folder, folder_instance.old_name)
+    def _get_complete_path_folder(self, ancestors: List[str]) -> str:
+        """ Return the path folder join with the path media folder """
+        path_folder = self.folder.get_path_parent_folder()
+        patch_folder = os.path.join(self.media_root_path, path_folder)
+        if ancestors:
+            patch_folder = os.path.join(self.media_root_path, path_folder, self.folder.name)
+        return patch_folder
 
-        media_patch_parent_folder = os.path.join(media_root_path, folder_instance.route, folder_instance.name)
+    def _join_paths(self, *args) -> str:
+        return os.path.join(*args)
 
-        os.rename(media_patch_children_folder, media_patch_parent_folder)
+    def _create_folder(self, path_folder: str) -> None:
+        os.umask(0)
+        os.makedirs(path_folder, mode=0o777)
 
-    update_route_parent_folder_and_children(folder_instance)
+    def _rename_folder(self, old_path: str, new_path: str) -> None:
+        os.rename(old_path, new_path)
 
+    def _move_folders(self, path_actual_folder, path_new_parent_folder):
+        actual_path = self.__join_paths(self.media_root_path, path_actual_folder)
+        new_path = self.__join_paths(self.media_root_path, path_new_parent_folder)
+        shutil.move(actual_path, new_path)
 
-def update_route_parent_folder_and_children(folder_instance):
+    def _update_folder_paths(self):
+        """Update the route of actual folder and his children folders"""
 
-    children_folders = folder_instance.get_children()
-    children_folders.update(route=f'{folder_instance.route}{folder_instance.name}/')
+        old_path_children = self.__get_old_path_folder()
 
-    if folder_instance.get_children_count() > 0:
-        for children in children_folders:
-            update_children_folders(children, rename_folder=False)
+        media_old_path = self._join_paths(self.media_root_path, old_path_children)
+
+        if self.folder.is_leaf() and not self.folder.is_root():
+            media_old_path = self._join_paths(media_old_path, self.folder.old_name)
+
+        media_new_patch = self._join_paths(self.media_root_path, self.folder.route, self.folder.name)
+
+        self._rename_folder(media_old_path, media_new_patch)
+
+        self.folder.update_route_parent_folder_and_children()
+
+    def _execute_pre_save_function(self) -> None:
+
+        ancestors = self.folder.get_ancestors_folder()
+
+        path_folder = self.folder.get_path_parent_folder()
+
+        media_patch_folder = self._get_complete_path_folder(ancestors)
+
+        if self.folder.pk is None:
+            self._create_folder(media_patch_folder)
+        elif self.folder.get_children_count() > 0 or (self.folder.is_leaf() and not self.folder.is_root()):
+            self._update_folder_paths()
+
+        self.folder.route = f'{path_folder}/'
+        self.folder.old_name = self.folder.name
 
 
 def move_folders_in_media(path_actual_folder, path_new_parent_folder):

@@ -1,4 +1,4 @@
-from typing import Optional, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING
 
 from django.db import models
 from django.db.models.signals import pre_save
@@ -7,14 +7,11 @@ from django.conf import settings
 
 from apps.core.models import BaseProjectModel
 
-from .utils.folder_manager import (update_children_folders,
-                                  update_route_parent_folder_and_children,
+from .utils.folder_manager import (FolderManager,
                                   move_folders_in_media)
 
 # Create your models here.
 from treebeard.mp_tree import MP_Node
-
-import os
 
 if TYPE_CHECKING:
     from apps.users.models import User
@@ -44,21 +41,6 @@ class Folder(MP_Node, BaseProjectModel):
 
     def __str__(self):
         return 'Category: {}'.format(self.name)
-
-    @staticmethod
-    def create_folder(owner_user: 'User', name: str) -> 'Folder':
-        """
-            Create a new folder to a user
-
-            Params:
-                owner_user(User): User to whom the folder will be created
-                name(str): Name of the folder
-                route(str): Route of folder
-
-            Return:
-                root(Folder): The new folder created
-        """
-        return Folder.objects.create(owner_user=owner_user, name=name)
 
     @staticmethod
     def create_folder_and_assign_to_parent(owner_user: 'User', name: str, parent_folder: 'Folder') -> 'Folder':
@@ -121,24 +103,33 @@ class Folder(MP_Node, BaseProjectModel):
             old_path = folder.get_path_folder()
 
             folder_update = Folder.objects.filter(pk=folder.pk)
-            folder_update.update(route=f'{new_parent_folder.route}{new_parent_folder.name}')
+            folder_update.update(route=f'{new_parent_folder.route}{new_parent_folder.name}/')
 
-            update_route_parent_folder_and_children(folder_update.first())
+            folder_update.first().update_route_parent_folder_and_children()
             move_folders_in_media(old_path, folder_update.first().get_path_folder())
             return True
         except Exception:
             return False
 
-    def get_ancestors_folder(self) -> str:
+    def get_ancestors_folder(self) -> List[str]:
         """
             Return ancestors folder
 
             Return:
-                path(str): path of the parent folder
+                ancestros(List[str]): list of the parent folders
         """
-        ancestors = self.get_ancestors().values_list('name', flat=True)
 
-        return ancestors
+        return self.get_ancestors().values_list('name', flat=True)
+
+    def get_children_folder(self) -> List[str]:
+        """
+            Return children folder
+
+            Return:
+                children(List[str]): list of children folders
+        """
+
+        return self.get_children().values_list('name', flat=True)
 
     def get_path_parent_folder(self) -> str:
         """
@@ -169,28 +160,25 @@ class Folder(MP_Node, BaseProjectModel):
 
         return f'{self.get_path_parent_folder()}/{self.name}'
 
+    def update_route_parent_folder_and_children(self) -> None:
+        """
+            Update the path of the actual folder and his children. This method
+            is used when the folder change his name or is moved
+        """
+
+        children_folders = self.get_children()
+        children_folders.update(route=f'{self.route}{self.name}/')
+
+        if self.get_children_count() > 0:
+            for children in children_folders:
+                children.update_route_parent_folder_and_children()
+
 
 @receiver(pre_save, sender=Folder)
 def pre_save_assign_root_folder(sender, instance, *args, **kwargs):
 
-    media_root_path = settings.MEDIA_ROOT
-
-    ancestors = instance.get_ancestors_folder()
-
-    path_folder = instance.get_path_parent_folder()
-
-    media_patch_folder = os.path.join(media_root_path, path_folder)
-    if ancestors:
-        media_patch_folder = os.path.join(media_root_path, path_folder, instance.name)
-
-    if instance.pk is None:
-        os.umask(0)
-        os.makedirs(media_patch_folder, mode=0o777)
-    elif instance.get_children_count() > 0 or instance.is_leaf() and not instance.is_root():
-        update_children_folders(instance)
-
-    instance.route = f'{path_folder}/'
-    instance.old_name = instance.name
+    folder_manager = FolderManager(folder=instance)
+    folder_manager._execute_pre_save_function()
 
 
 class File(BaseProjectModel):
