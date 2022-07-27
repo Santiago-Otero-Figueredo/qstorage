@@ -15,6 +15,9 @@ URL_CREATE_FOLDER = 'directories:folders-create-folder'
 URL_LIST_CHILDREN = 'directories:folders-children-folders'
 URL_DETAIL_FOLDER = 'directories:folders-detail'
 URL_MOVE_FOLDER = 'directories:folders-move-folder'
+URL_MOVE_TO_RECICLE_BIN = 'directories:folders-move-to-recycle-bin'
+URL_RECOVER_FOLDER = 'directories:folders-recover-folder'
+URL_DELETE_FOLDER = 'directories:folders-delete-folder'
 
 
 @override_settings(MEDIA_ROOT=settings.MEDIA_ROOT_TEST)
@@ -121,6 +124,42 @@ class AuthenticationAPITestCase(APITestCase):
         )
 
         response = self.client.patch(url_move_folder, payload)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_move_folder_to_recicle_bin_authenticated(self):
+        """ Testing the authorization for move folder to recicle bin action. The user have to be log in """
+
+        url_move_folder = reverse(
+            URL_MOVE_TO_RECICLE_BIN,
+            kwargs={'pk': self.user_1_nested_test_folder_2.pk}
+        )
+
+        response = self.client.patch(url_move_folder)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_move_folder_to_recover_folder_authenticated(self):
+        """ Testing the authorization for recover folder action. The user have to be log in """
+
+        url_recover_folder = reverse(
+            URL_RECOVER_FOLDER,
+            kwargs={'pk': self.user_1_nested_test_folder_2.pk}
+        )
+
+        response = self.client.patch(url_recover_folder)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_delete_folder_authenticated(self):
+        """ Testing the authorization for delete folder action. The user have to be log in """
+
+        url_delete_folder = reverse(
+            URL_DELETE_FOLDER,
+            kwargs={'pk': self.user_1_nested_test_folder_2.pk}
+        )
+
+        response = self.client.delete(url_delete_folder)
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 

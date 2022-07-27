@@ -15,6 +15,9 @@ URL_CREATE_FOLDER = 'directories:folders-create-folder'
 URL_LIST_CHILDREN = 'directories:folders-children-folders'
 URL_DETAIL_FOLDER = 'directories:folders-detail'
 URL_MOVE_FOLDER = 'directories:folders-move-folder'
+URL_MOVE_TO_RECICLE_BIN = 'directories:folders-move-to-recycle-bin'
+URL_RECOVER_FOLDER = 'directories:folders-recover-folder'
+URL_DELETE_FOLDER = 'directories:folders-delete-folder'
 
 
 @override_settings(MEDIA_ROOT=settings.MEDIA_ROOT_TEST)
@@ -163,6 +166,48 @@ class PermissionsAPITestCase(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token_1}')
 
         response = self.client.post(url_move_folder, payload)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_move_folder_to_recicle_bin_not_user_owner(self):
+        """ Testing the permissions for move folder to recicle bin. The user only can move
+        if he is the owner of it """
+
+        url_move_folder = reverse(
+            URL_MOVE_TO_RECICLE_BIN,
+            kwargs={'pk': self.user_2_test_folder_1.pk}
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token_1}')
+
+        response = self.client.patch(url_move_folder)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_recover_folder_not_user_owner(self):
+        """ Testing the permissions for recover folder. The user only can move
+        if he is the owner of it """
+
+        url_recover_folder = reverse(
+            URL_RECOVER_FOLDER,
+            kwargs={'pk': self.user_2_test_folder_1.pk}
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token_1}')
+
+        response = self.client.patch(url_recover_folder)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_folder_not_user_owner(self):
+        """ Testing the permissions for delete folder. The user only can move
+        if he is the owner of it """
+
+        url_delete_folder = reverse(
+            URL_DELETE_FOLDER,
+            kwargs={'pk': self.user_2_test_folder_1.pk}
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token_1}')
+
+        response = self.client.delete(url_delete_folder)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 

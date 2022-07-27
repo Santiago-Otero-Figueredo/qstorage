@@ -17,6 +17,9 @@ URL_CREATE_FOLDER = 'directories:folders-create-folder'
 URL_LIST_CHILDREN = 'directories:folders-children-folders'
 URL_DETAIL_FOLDER = 'directories:folders-detail'
 URL_MOVE_FOLDER = 'directories:folders-move-folder'
+URL_MOVE_TO_RECICLE_BIN = 'directories:folders-move-to-recycle-bin'
+URL_RECOVER_FOLDER = 'directories:folders-recover-folder'
+URL_DELETE_FOLDER = 'directories:folders-delete-folder'
 
 
 @override_settings(MEDIA_ROOT=settings.MEDIA_ROOT_TEST)
@@ -49,6 +52,10 @@ class FolderCRUDAPITest(APITestCase):
                         |- child_1_update_2
                             |- child_1_update_2_nested
                     |- test_update_nested_3
+                |- delete_folder
+                    |- delete_folder_children_1
+                        |- delete_folder_children_1_nested
+                    |- delete_folder_children_2
         """
         super(FolderCRUDAPITest, cls).setUpClass()
         cls.user = get_user_model().objects.create(
@@ -62,6 +69,23 @@ class FolderCRUDAPITest(APITestCase):
 
         cls.token, _ = Token.objects.get_or_create(user=cls.user)
         cls.root_folder = Folder.get_root_folder_by_user(cls.user)
+        cls.delete_folder = cls.root_folder.add_child(owner_user=cls.user, name='delete_folder', route='/')
+        cls.delete_folder_children_1 = cls.delete_folder.add_child(
+            owner_user=cls.user,
+            name='delete_folder_children_1',
+            route='/'
+        )
+        cls.delete_folder_children_2 = cls.delete_folder.add_child(
+            owner_user=cls.user,
+            name='delete_folder_children_2',
+            route='/'
+        )
+        cls.delete_folder_children_1_nested = cls.delete_folder_children_1.add_child(
+            owner_user=cls.user,
+            name='delete_folder_children_1_nested',
+            route='/'
+        )
+
         cls.test_same_name = cls.root_folder.add_child(owner_user=cls.user, name='test_1_nested_1', route='/')
 
         cls.test_folder = cls.root_folder.add_child(owner_user=cls.user, name='test_1', route='/')
@@ -196,12 +220,12 @@ class FolderCRUDAPITest(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
         response = self.client.patch(url_detail_folder, update_data)
 
-        child_folder = Folder.objects.get(name='test_1_nested')
+        child_folder = Folder.get_by_id(self.test_folder.pk)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.root_folder.get_first_child().name, 'update_name')
-        self.assertEqual(child_folder.route, '1/update_name/')
-        self.assertTrue(child_folder.is_child_of(self.root_folder.get_first_child()))
+        self.assertEqual(child_folder.name, 'update_name')
+        self.assertEqual(child_folder.route, '1/')
+        self.assertTrue(child_folder.is_child_of(self.root_folder))
 
     def test_update_name_leaf_folder_in_root(self):
         """ Testing the update name and the update of paths of the leaf folder in root """
@@ -338,13 +362,14 @@ class FolderCRUDAPITest(APITestCase):
         response = self.client.get(url_list_children)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0]['name'], 'test_1')
-        self.assertEqual(response.data[1]['name'], 'test_1_nested_1')
-        self.assertEqual(response.data[2]['name'], 'test_2')
-        self.assertEqual(response.data[3]['name'], 'test_folder_move')
-        self.assertEqual(response.data[4]['name'], 'test_leaf_folder')
-        self.assertEqual(response.data[5]['name'], 'test_new_folder_parent')
-        self.assertEqual(response.data[6]['name'], 'test_update_folder')
+        self.assertEqual(response.data[0]['name'], 'delete_folder')
+        self.assertEqual(response.data[1]['name'], 'test_1')
+        self.assertEqual(response.data[2]['name'], 'test_1_nested_1')
+        self.assertEqual(response.data[3]['name'], 'test_2')
+        self.assertEqual(response.data[4]['name'], 'test_folder_move')
+        self.assertEqual(response.data[5]['name'], 'test_leaf_folder')
+        self.assertEqual(response.data[6]['name'], 'test_new_folder_parent')
+        self.assertEqual(response.data[7]['name'], 'test_update_folder')
 
     def test_list_children_folders_in_nested_folder(self):
         """ Testing the list of children folders in another folder different of root """
@@ -537,6 +562,94 @@ class FolderCRUDAPITest(APITestCase):
         self.assertTrue(os.path.exists(media_path_nested_test_folder_1_moved))
         self.assertTrue(os.path.exists(media_path_nested_test_folder_2_moved))
         self.assertTrue(os.path.exists(media_path_children_test_2))
+
+    def test_move_folder_to_recicle_bin(self):
+        """ Testing the disabled folder and children """
+
+        url_move_folder = reverse(
+            URL_MOVE_TO_RECICLE_BIN,
+            kwargs={'pk': self.test_folder.pk}
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+
+        response = self.client.patch(url_move_folder)
+
+        test_parent_folder = Folder.get_by_id(self.test_folder.pk)
+        test_1 = Folder.get_by_id(self.nested_test_1_folder_1.pk)
+        test_2 = Folder.get_by_id(self.nested_test_folder_2_nested.pk)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(test_parent_folder.is_active)
+        self.assertFalse(test_1.is_active)
+        self.assertFalse(test_2.is_active)
+
+    def test_recover_folder(self):
+        """ Testing the recover folder and children """
+
+        url_move_folder = reverse(
+            URL_RECOVER_FOLDER,
+            kwargs={'pk': self.test_folder.pk}
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+
+        response = self.client.patch(url_move_folder)
+
+        test_parent_folder = Folder.get_by_id(self.test_folder.pk)
+        test_1 = Folder.get_by_id(self.nested_test_1_folder_1.pk)
+        test_2 = Folder.get_by_id(self.nested_test_folder_2_nested.pk)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(test_parent_folder.is_active)
+        self.assertTrue(test_1.is_active)
+        self.assertTrue(test_2.is_active)
+
+    def test_delete_folder(self):
+        """ Testing the delete folder and children """
+
+        url_move_folder = reverse(
+            URL_DELETE_FOLDER,
+            kwargs={'pk': self.delete_folder.pk}
+        )
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+
+        media_path_test_parent_folder = f'{settings.MEDIA_ROOT_TEST}{self.delete_folder.get_path_folder()}'
+        media_path_test_1 = f'{settings.MEDIA_ROOT_TEST}{self.delete_folder_children_1.get_path_folder()}'
+        media_path_test_2 = f'{settings.MEDIA_ROOT_TEST}{self.delete_folder_children_2.get_path_folder()}'
+        media_path_test_3 = f'{settings.MEDIA_ROOT_TEST}{self.delete_folder_children_1_nested.get_path_folder()}'
+
+        response = self.client.delete(url_move_folder)
+
+        test_parent_folder = Folder.get_by_id(self.delete_folder.pk)
+        test_1 = Folder.get_by_id(self.delete_folder_children_1.pk)
+        test_2 = Folder.get_by_id(self.delete_folder_children_2.pk)
+        test_3 = Folder.get_by_id(self.delete_folder_children_1_nested.pk)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        # Validation of deleting folder in database
+        self.assertIsNone(test_parent_folder)
+        self.assertIsNone(test_1)
+        self.assertIsNone(test_2)
+        self.assertIsNone(test_3)
+        # Validation of deleting folders move in media folder
+        self.assertFalse(os.path.exists(media_path_test_parent_folder))
+        self.assertFalse(os.path.exists(media_path_test_1))
+        self.assertFalse(os.path.exists(media_path_test_2))
+        self.assertFalse(os.path.exists(media_path_test_3))
+
+    def test_not_allow_delete_root_folder(self):
+        """ Testing that the root folder can't be deleted even by the owner """
+
+        url_move_folder = reverse(
+            URL_DELETE_FOLDER,
+            kwargs={'pk': self.root_folder.pk}
+        )
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+
+        response = self.client.delete(url_move_folder)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     @classmethod
     def tearDownClass(cls):

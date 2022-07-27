@@ -7,13 +7,14 @@ from apps.directories.models import Folder
 
 from .serializers import FolderCreateSerializer
 from .permissions import IsAuthenticatedOwnerUser
+from .utils.folder_manager import FolderManager
 
 
 class FolderVS(ModelViewSet):
 
     serializer_class = FolderCreateSerializer
     permission_classes = [IsAuthenticatedOwnerUser]
-    http_method_names = ['get', 'patch', 'post']
+    http_method_names = ['get', 'patch', 'post', 'delete']
 
     def get_queryset(self):
         return self.request.user.own_entity_directories.all()
@@ -98,14 +99,13 @@ class FolderVS(ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-    @action(detail=True, methods=['patch'], url_path='disable-folder',
-            url_name='disable-folder', permission_classes=[IsAuthenticatedOwnerUser])
-    def disable_folder(self, request, pk):
+    @action(detail=True, methods=['patch'], url_path='move-to-recycle-bin',
+            url_name='move-to-recycle-bin', permission_classes=[IsAuthenticatedOwnerUser])
+    def move_to_recycle_bin(self, request, pk):
         """ move folder to the recycle bin and prepare for his elimination """
         element = self.get_object()
         try:
-            folder = Folder.get_by_id(element.pk)
-            folder.disable_folder_and_children()
+            element.disable_folder_and_children()
             return Response({'message': 'Folder and children moved to recycle bin. Will be delete in 3 days'})
         except Exception:
             return Response({'message': 'An error has occurred'}, status=status.HTTP_400_BAD_REQUEST)
@@ -116,8 +116,19 @@ class FolderVS(ModelViewSet):
         """ move folder to the recycle bin and prepare for his elimination """
         element = self.get_object()
         try:
-            folder = Folder.get_by_id(element.pk)
-            folder.activate_folder_and_children()
+            element.activate_folder_and_children()
             return Response({'message': 'Folder and children recover successfully'})
+        except Exception:
+            return Response({'message': 'An error has occurred'}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['delete'], url_path='delete-folder',
+            url_name='delete-folder', permission_classes=[IsAuthenticatedOwnerUser])
+    def delete_folder(self, request, pk):
+        """ move folder to the recycle bin and prepare for his elimination """
+        element = self.get_object()
+        try:
+            folder_manager = FolderManager(element)
+            folder_manager._delete_folder()
+            return Response({'message': 'Folder and children deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
         except Exception:
             return Response({'message': 'An error has occurred'}, status=status.HTTP_400_BAD_REQUEST)
