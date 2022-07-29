@@ -115,13 +115,11 @@ class AuthenticationAPITestCase(APITestCase):
         """ Testing the authorization for move folder action. The user have to be log in """
 
         payload = {
+            'folders_to_move': [self.user_1_nested_test_folder_2.pk],
             'new_parent_folder': self.user_1_test_folder_1.pk
         }
 
-        url_move_folder = reverse(
-            URL_MOVE_FOLDER,
-            kwargs={'pk': self.user_1_nested_test_folder_2.pk}
-        )
+        url_move_folder = reverse(URL_MOVE_FOLDER)
 
         response = self.client.patch(url_move_folder, payload)
 

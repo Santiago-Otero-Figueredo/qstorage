@@ -156,13 +156,11 @@ class PermissionsAPITestCase(APITestCase):
         if he is the owner of it """
 
         payload = {
+            'folders_to_move': [self.user_1_test_folder_1.pk],
             'new_parent_folder': self.user_2_test_folder_1.pk
         }
 
-        url_move_folder = reverse(
-            URL_MOVE_FOLDER,
-            kwargs={'pk': self.user_1_test_folder_1.pk}
-        )
+        url_move_folder = reverse(URL_MOVE_FOLDER)
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token_1}')
 
         response = self.client.post(url_move_folder, payload)

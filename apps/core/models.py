@@ -1,3 +1,4 @@
+from typing import List, Optional
 from django.db import models
 from django.db.models import QuerySet
 
@@ -11,11 +12,11 @@ class BaseProjectModel(models.Model):
         abstract = True
 
     @classmethod
-    def get_all(cls):
+    def get_all(cls) -> QuerySet['BaseProjectModel']:
         return cls.objects.all()
 
     @classmethod
-    def get_by_id(cls, id: int):
+    def get_by_id(cls, id: int) -> Optional['BaseProjectModel']:
 
         try:
             return cls.objects.get(pk=id)
@@ -23,7 +24,12 @@ class BaseProjectModel(models.Model):
             return None
 
     @classmethod
-    def exists_by_id(cls, id: int):
+    def get_elements_by_list_id(cls, list_ids: List[int]) -> QuerySet['BaseProjectModel']:
+
+        return cls.objects.filter(pk__in=list_ids)
+
+    @classmethod
+    def exists_by_id(cls, id: int) -> bool:
 
         return cls.objects.filter(pk=id).exists()
 

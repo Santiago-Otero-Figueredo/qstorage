@@ -1,4 +1,4 @@
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING, Set
 
 from django.db import models
 from django.db.models.signals import pre_save
@@ -111,6 +111,60 @@ class Folder(MP_Node, BaseProjectModel):
         except Exception:
             return False
 
+    @staticmethod
+    def move_many_folder_into_another(folders_id: List[int], new_parent_folder: 'Folder') -> bool:
+        """
+            Move a Folder with all its contents into another and return if the result of the action.
+
+            Parameters:
+                folder(Folder): The folder to be moved
+                new_parent_folder(Folder): The new parent folder where it will be moved
+        """
+        try:
+            folders_to_move = Folder.get_elements_by_list_id(folders_id)
+            for folder in folders_to_move:
+                Folder.move_folder_into_another(folder, new_parent_folder)
+            return True
+        except Exception:
+            return False
+
+    @staticmethod
+    def get_all_pk_parents_in_list_ids(list_ids: List[int]) -> Set[int]:
+        """
+            Returns the pk of all the parent folders of the received
+            folders as pk in the list of identifiers
+
+            Parameters:
+                list_ids(List[int]): List of folder pk to get the parent
+
+            Return:
+                list_ids_parents(Set[int]): Set of parents folders pk
+        """
+        folders = Folder.get_elements_by_list_id(list_ids)
+        list_parent_pk = set()
+        for folder in folders:
+            list_parent_pk.add(folder.get_parent().pk)
+
+        return list_parent_pk
+
+    @staticmethod
+    def get_all_names_of_folders_in_list_ids(list_ids: List[int]) -> Set[str]:
+        """
+            Returns the names of all the folders of the received
+            folders as pk in the list of identifiers
+
+            Parameters:
+                list_ids(List[int]): List of folder pk to get the names
+
+            Return:
+                list_ids_parents(Set[int]): Set of folders names
+        """
+        folders = Folder.get_elements_by_list_id(list_ids)
+
+        list_parent_names = set(folders.values_list('name', flat=True))
+
+        return list_parent_names
+
     def get_ancestors_folder(self) -> List[str]:
         """
             Return ancestors folder
@@ -121,15 +175,15 @@ class Folder(MP_Node, BaseProjectModel):
 
         return self.get_ancestors().values_list('name', flat=True)
 
-    def get_children_folder(self) -> List[str]:
+    def get_children_folder(self) -> Set[str]:
         """
             Return children folder
 
             Return:
-                children(List[str]): list of children folders
+                children(Set[str]): list of children folders
         """
 
-        return self.get_children().values_list('name', flat=True)
+        return set(self.get_children().values_list('name', flat=True))
 
     def get_path_parent_folder(self) -> str:
         """

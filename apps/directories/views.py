@@ -48,17 +48,27 @@ class FolderVS(ModelViewSet):
 
         return Response(serializer.data)
 
-    @action(detail=True, methods=['post'], url_path='move-folder',
+    @action(detail=False, methods=['post'], url_path='move-folder',
             url_name='move-folder', permission_classes=[IsAuthenticatedOwnerUser])
-    def move_folder(self, request, pk):
+    def move_folder(self, request):
         """ Move the folder content to another folder """
 
-        actual_folder = self.get_object()
+        data = dict(request.data)
 
-        id_new_parent_folder = request.POST.get('new_parent_folder', None)
+        list_of_ids_to_move = data.get('folders_to_move', None)
+        folders_to_move = list(map(int, list_of_ids_to_move))
+        id_new_parent_folder = data.get('new_parent_folder', None)
+
+
         if id_new_parent_folder is None:
             return Response(
                 {'message': 'The new_parent_folder field is required.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if folders_to_move is None or len(folders_to_move) == 0:
+            return Response(
+                {'message': 'The folders_to_move field is required.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -70,25 +80,25 @@ class FolderVS(ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        if new_parent_folder.pk == actual_folder.get_parent().pk:
+        if new_parent_folder.pk in Folder.get_all_pk_parents_in_list_ids(folders_to_move):
             return Response(
                 {'message': 'The new folder to be moved to must be different than current parent folder'},
                 status=status.HTTP_412_PRECONDITION_FAILED
             )
 
-        if new_parent_folder.pk == actual_folder.pk:
+        if new_parent_folder.pk in folders_to_move:
             return Response(
                 {'message': 'The new folder to be moved to must be different than current folder'},
                 status=status.HTTP_412_PRECONDITION_FAILED
             )
 
-        if actual_folder.name in new_parent_folder.get_children_folder():
+        if Folder.get_all_names_of_folders_in_list_ids(folders_to_move) & new_parent_folder.get_children_folder():
             return Response(
                 {'message': 'The new folder to be moved to must be different name of the children folder'},
                 status=status.HTTP_412_PRECONDITION_FAILED
             )
 
-        if Folder.move_folder_into_another(actual_folder, new_parent_folder) is True:
+        if Folder.move_many_folder_into_another(folders_to_move, new_parent_folder) is True:
             return Response(
                 {'message': 'Folder moved successfully.'},
                 status=status.HTTP_200_OK

@@ -388,13 +388,12 @@ class FolderCRUDAPITest(APITestCase):
         """ Testing not allow methods in function """
 
         payload = {
+            'folders_to_move': [self.test_folder_move_3.pk],
             'new_parent_folder': self.test_folder_move.pk
         }
 
-        url_move_folder = reverse(
-            URL_MOVE_FOLDER,
-            kwargs={'pk': self.test_folder_move_3.pk}
-        )
+        url_move_folder = reverse(URL_MOVE_FOLDER)
+
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
 
         response_1 = self.client.get(url_move_folder, payload)
@@ -412,10 +411,8 @@ class FolderCRUDAPITest(APITestCase):
 
         payload = {}
 
-        url_move_folder = reverse(
-            URL_MOVE_FOLDER,
-            kwargs={'pk': self.test_folder_move_3.pk}
-        )
+        url_move_folder = reverse(URL_MOVE_FOLDER)
+
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
 
         response = self.client.post(url_move_folder, payload)
@@ -426,13 +423,12 @@ class FolderCRUDAPITest(APITestCase):
         """ Testing the validation of required new parent folder exists """
 
         payload = {
+            'folders_to_move': [self.test_folder_move_3.pk],
             'new_parent_folder': 1000
         }
 
-        url_move_folder = reverse(
-            URL_MOVE_FOLDER,
-            kwargs={'pk': self.test_folder_move_3.pk}
-        )
+        url_move_folder = reverse(URL_MOVE_FOLDER)
+
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
 
         response = self.client.post(url_move_folder, payload)
@@ -444,13 +440,12 @@ class FolderCRUDAPITest(APITestCase):
          new parent folder must be different of actual parent folder """
 
         payload = {
+            'folders_to_move': [self.test_folder_move_3.pk],
             'new_parent_folder': self.test_folder_move.pk
         }
 
-        url_move_folder = reverse(
-            URL_MOVE_FOLDER,
-            kwargs={'pk': self.test_folder_move_3.pk}
-        )
+        url_move_folder = reverse(URL_MOVE_FOLDER)
+
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
 
         response = self.client.post(url_move_folder, payload)
@@ -462,13 +457,12 @@ class FolderCRUDAPITest(APITestCase):
          new parent folder must be different of actual folder """
 
         payload = {
+            'folders_to_move': [self.test_folder_move_3.pk],
             'new_parent_folder': self.test_folder_move_3.pk
         }
 
-        url_move_folder = reverse(
-            URL_MOVE_FOLDER,
-            kwargs={'pk': self.test_folder_move_3.pk}
-        )
+        url_move_folder = reverse(URL_MOVE_FOLDER)
+
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
 
         response = self.client.post(url_move_folder, payload)
@@ -481,13 +475,12 @@ class FolderCRUDAPITest(APITestCase):
          in th new parent folder """
 
         payload = {
+            'folders_to_move': [self.test_same_name.pk],
             'new_parent_folder': self.nested_test_1_folder_1.pk
         }
 
-        url_move_folder = reverse(
-            URL_MOVE_FOLDER,
-            kwargs={'pk': self.test_same_name.pk}
-        )
+        url_move_folder = reverse(URL_MOVE_FOLDER)
+
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
 
         response = self.client.post(url_move_folder, payload)
@@ -498,13 +491,11 @@ class FolderCRUDAPITest(APITestCase):
         """ Testing to move a folder without children to another folder"""
 
         payload = {
+            'folders_to_move': [self.test_folder_move_3.pk],
             'new_parent_folder': self.test_2_folder.pk
         }
 
-        url_move_folder = reverse(
-            URL_MOVE_FOLDER,
-            kwargs={'pk': self.test_folder_move_3.pk}
-        )
+        url_move_folder = reverse(URL_MOVE_FOLDER)
 
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
         response = self.client.post(url_move_folder, payload)
@@ -525,13 +516,11 @@ class FolderCRUDAPITest(APITestCase):
         """ Testing to move a folder with children to another folder"""
 
         payload = {
+            'folders_to_move': [self.nested_test_1_folder_1.pk],
             'new_parent_folder': self.test_new_folder_parent.pk
         }
 
-        url_move_folder = reverse(
-            URL_MOVE_FOLDER,
-            kwargs={'pk': self.nested_test_1_folder_1.pk}
-        )
+        url_move_folder = reverse(URL_MOVE_FOLDER)
 
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
         response = self.client.post(url_move_folder, payload)
@@ -559,6 +548,49 @@ class FolderCRUDAPITest(APITestCase):
         self.assertTrue(nested_test_folder_2_nested_moved.is_descendant_of(self.test_new_folder_parent))
         # Validation of folders move in media folder
         self.assertTrue(os.path.exists(media_path_test_folder_moved))
+        self.assertTrue(os.path.exists(media_path_nested_test_folder_1_moved))
+        self.assertTrue(os.path.exists(media_path_nested_test_folder_2_moved))
+        self.assertTrue(os.path.exists(media_path_children_test_2))
+
+
+    def test_move_multiple_folder_with_children(self):
+        """ Testing to move multiple folder with children to another folder"""
+
+        payload = {
+            'folders_to_move': [self.nested_test_folder_1.pk,
+                                self.nested_test_folder_2.pk],
+            'new_parent_folder': self.test_update_nested_1.pk
+        }
+
+        url_move_folder = reverse(URL_MOVE_FOLDER)
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        response = self.client.post(url_move_folder, payload)
+
+
+        nested_test_folder_1_moved = Folder.get_by_id(self.nested_test_folder_1.pk)
+        nested_test_folder_2_moved = Folder.get_by_id(self.nested_test_folder_2.pk)
+        nested_test_folder_2_nested_moved = Folder.get_by_id(self.nested_test_folder_2_nested.pk)
+
+        media_path_new_parent_folder = f'{settings.MEDIA_ROOT_TEST}{self.test_update_nested_1.get_path_folder()}'
+
+        media_path_nested_test_folder_1_moved = f'{media_path_new_parent_folder}/{nested_test_folder_1_moved.name}'
+        media_path_nested_test_folder_2_moved = f'{media_path_new_parent_folder}/{nested_test_folder_2_moved.name}'
+        media_path_children_test_2 = f'{media_path_nested_test_folder_2_moved}/{nested_test_folder_2_nested_moved.name}'
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Validation of change path in database
+        self.assertEqual(nested_test_folder_1_moved.get_parent().name, self.test_update_nested_1.name)
+        self.assertEqual(nested_test_folder_2_moved.get_parent().name, self.test_update_nested_1.name)
+        self.assertEqual(nested_test_folder_1_moved.get_path_parent_folder(), self.test_update_nested_1.get_path_folder())
+        self.assertEqual(nested_test_folder_2_moved.get_path_parent_folder(), self.test_update_nested_1.get_path_folder())
+
+        # Validation of changes in inheritance database
+        self.assertTrue(nested_test_folder_1_moved.is_child_of(self.test_update_nested_1))
+        self.assertTrue(nested_test_folder_1_moved.is_descendant_of(self.test_update_nested_1))
+        self.assertTrue(nested_test_folder_2_moved.is_descendant_of(self.test_update_nested_1))
+        self.assertTrue(nested_test_folder_2_nested_moved.is_descendant_of(self.test_update_nested_1))
+        # Validation of folders move in media folder
         self.assertTrue(os.path.exists(media_path_nested_test_folder_1_moved))
         self.assertTrue(os.path.exists(media_path_nested_test_folder_2_moved))
         self.assertTrue(os.path.exists(media_path_children_test_2))
