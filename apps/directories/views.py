@@ -56,9 +56,8 @@ class FolderVS(ModelViewSet):
         data = dict(request.data)
 
         list_of_ids_to_move = data.get('folders_to_move', None)
-        folders_to_move = list(map(int, list_of_ids_to_move))
-        id_new_parent_folder = data.get('new_parent_folder', None)
 
+        id_new_parent_folder = request.POST.get('new_parent_folder', None)
 
         if id_new_parent_folder is None:
             return Response(
@@ -66,18 +65,25 @@ class FolderVS(ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        if folders_to_move is None or len(folders_to_move) == 0:
+        if list_of_ids_to_move is None or len(list_of_ids_to_move) == 0:
             return Response(
                 {'message': 'The folders_to_move field is required.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        folders_to_move = list(map(int, list_of_ids_to_move))
         new_parent_folder = self.request.user.get_folder_by_id(id_new_parent_folder)
 
         if new_parent_folder is None:
             return Response(
                 {'message': 'The destination folder does not exists. Check it and try again'},
                 status=status.HTTP_404_NOT_FOUND
+            )
+
+        if Folder.get_elements_by_list_id(folders_to_move).count() != len(folders_to_move):
+            return Response(
+                {'message':'You do not have the right permissions to move the folders'},
+                status=status.HTTP_403_FORBIDDEN
             )
 
         if new_parent_folder.pk in Folder.get_all_pk_parents_in_list_ids(folders_to_move):

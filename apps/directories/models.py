@@ -50,7 +50,7 @@ class Folder(MP_Node, BaseProjectModel):
             Params:
                 owner_user(User): User to whom the folder will be created
                 name(str): Name of the folder
-                route(str): Route of folder
+                parent_folder(Folder): Parent folder of the new folder
 
             Return:
                 root(Folder): The new folder created
