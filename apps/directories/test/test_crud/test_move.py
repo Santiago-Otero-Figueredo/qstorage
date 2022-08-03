@@ -1,16 +1,12 @@
-from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.test import override_settings
 from django.urls import reverse
 
 from rest_framework import status
-from rest_framework.test import APITestCase
-from rest_framework.authtoken.models import Token
 
 from apps.directories.models import Folder
 
 from apps.directories.test.test_crud import FolderCRUDAPITest
-from shutil import rmtree
 
 import os.path
 

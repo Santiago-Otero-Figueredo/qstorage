@@ -71,7 +71,8 @@ class FolderCRUDAPITest(APITestCase):
                         |- Keyboard
                         |- Mouse
                         |- Headphones
-                |- Budget
+                    |- Budget
+                |- Operative system
         """
         super(FolderCRUDAPITest, cls).setUpClass()
         cls.user = get_user_model().objects.create(
@@ -86,7 +87,7 @@ class FolderCRUDAPITest(APITestCase):
         cls.token, _ = Token.objects.get_or_create(user=cls.user)
         cls.root_folder = Folder.get_root_folder_by_user(cls.user)
 
-        cls.hardware = Folder.create_folder_and_assign_to_parent(cls.user, 'Hardware', cls.root_folder)
+        cls.hardware = Folder.create_folder_and_assign_to_parent(cls.user, 'Hardware', cls.root_folder) # ROOT
         cls.storage = Folder.create_folder_and_assign_to_parent(cls.user, 'Storage', cls.hardware) # hardware
         cls.hdd = Folder.create_folder_and_assign_to_parent(cls.user, 'HDD', cls.storage) # storage
         cls.ssd = Folder.create_folder_and_assign_to_parent(cls.user, 'SSD', cls.storage) # storage
@@ -150,6 +151,7 @@ class FolderCRUDAPITest(APITestCase):
 
         cls.budget = Folder.create_folder_and_assign_to_parent(cls.user, 'Budget', cls.hardware) # hardware
 
+        cls.operative_system = Folder.create_folder_and_assign_to_parent(cls.user, 'Operative system', cls.root_folder) # ROOT
 
     @classmethod
     def tearDownClass(cls):

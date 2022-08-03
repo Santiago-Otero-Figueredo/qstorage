@@ -211,8 +211,10 @@ class Folder(MP_Node, BaseProjectModel):
             Return:
                 path(str): path of the folder
         """
-
-        return f'{self.get_path_parent_folder()}/{self.name}'
+        path = self.get_path_parent_folder()
+        if self.is_root() is False:
+            return f'{path}/{self.name}'
+        return path
 
     def update_route_parent_folder_and_children(self) -> None:
         """

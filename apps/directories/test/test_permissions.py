@@ -136,20 +136,6 @@ class PermissionsAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_update_root_name_not_permissions(self):
-        """ Testing the permissions for update the root folder action.
-        The user can not modify this folder even if he is the owner """
-
-        update_data = {
-            'name': 'update_name'
-        }
-
-        url_update_folders = reverse(URL_DETAIL_FOLDER, kwargs={'pk': self.root_folder_1.pk})
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token_1}')
-
-        response = self.client.patch(url_update_folders, update_data)
-
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_move_folder_not_user_owner(self):
         """ Testing the permissions for move folder. The user only can move
