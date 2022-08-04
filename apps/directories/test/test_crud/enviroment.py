@@ -153,6 +153,7 @@ class FolderCRUDAPITest(APITestCase):
 
         cls.operative_system = Folder.create_folder_and_assign_to_parent(cls.user, 'Operative system', cls.root_folder) # ROOT
 
+
     @classmethod
     def tearDownClass(cls):
         """ Remove the test file in media"""

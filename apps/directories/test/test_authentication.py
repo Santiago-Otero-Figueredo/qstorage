@@ -74,7 +74,7 @@ class AuthenticationAPITestCase(APITestCase):
             route='/'
         )
 
-    def test_list_children_folders_not_authenticated(self):
+    def test_01_list_children_folders_not_authenticated(self):
         """ Testing the authorization for access to the list children folder function.
         The user have to be log in """
 
@@ -84,7 +84,7 @@ class AuthenticationAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_create_folders_not_authenticated(self):
+    def test_02_create_folders_not_authenticated(self):
         """ Testing the authorization for create folder action. The user have to be log in """
 
         payload = {
@@ -98,7 +98,7 @@ class AuthenticationAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_update_name_not_authenticated(self):
+    def test_03_update_name_not_authenticated(self):
         """ Testing the authorization for update folder action. The user have to be log in """
 
         update_data = {
@@ -111,7 +111,7 @@ class AuthenticationAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_move_folder_not_authenticated(self):
+    def test_04_move_folder_not_authenticated(self):
         """ Testing the authorization for move folder action. The user have to be log in """
 
         payload = {
@@ -125,7 +125,7 @@ class AuthenticationAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_move_folder_to_recicle_bin_authenticated(self):
+    def test_05_move_folder_to_recicle_bin_authenticated(self):
         """ Testing the authorization for move folder to recicle bin action. The user have to be log in """
 
         url_move_folder = reverse(
@@ -137,7 +137,7 @@ class AuthenticationAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_move_folder_to_recover_folder_authenticated(self):
+    def test_06_move_folder_to_recover_folder_authenticated(self):
         """ Testing the authorization for recover folder action. The user have to be log in """
 
         url_recover_folder = reverse(
@@ -149,7 +149,7 @@ class AuthenticationAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_delete_folder_authenticated(self):
+    def test_07_delete_folder_authenticated(self):
         """ Testing the authorization for delete folder action. The user have to be log in """
 
         url_delete_folder = reverse(

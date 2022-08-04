@@ -5,7 +5,6 @@ from django.urls import reverse
 from rest_framework import status
 
 from apps.directories.models import Folder
-
 from apps.directories.test.test_crud import FolderCRUDAPITest
 
 import os.path

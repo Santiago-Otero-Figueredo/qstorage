@@ -94,7 +94,7 @@ class PermissionsAPITestCase(APITestCase):
             route='/'
         )
 
-    def test_list_children_folders_not_permissions(self):
+    def test_01_list_children_folders_not_permissions(self):
         """ Testing the permissions for list children folder action.
         The user have to be the owner of the parent folder """
 
@@ -105,7 +105,7 @@ class PermissionsAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_create_folders_not_permissions(self):
+    def test_02_create_folders_not_permissions(self):
         """ Testing the permissions for create folder action.
         The user have to be the owner of the parent folder """
 
@@ -121,7 +121,7 @@ class PermissionsAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_update_name_not_permissions(self):
+    def test_03_update_name_not_permissions(self):
         """ Testing the permissions for update folder action.
         The user have to be the owner of the parent folder """
 
@@ -137,7 +137,7 @@ class PermissionsAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
-    def test_move_folder_not_user_owner(self):
+    def test_04_move_folder_not_user_owner(self):
         """ Testing the permissions for move folder. The user only can move
         if he is the owner of it """
 
@@ -153,7 +153,7 @@ class PermissionsAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_move_folder_to_recicle_bin_not_user_owner(self):
+    def test_05_move_folder_to_recicle_bin_not_user_owner(self):
         """ Testing the permissions for move folder to recicle bin. The user only can move
         if he is the owner of it """
 
@@ -167,7 +167,7 @@ class PermissionsAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_recover_folder_not_user_owner(self):
+    def test_06_recover_folder_not_user_owner(self):
         """ Testing the permissions for recover folder. The user only can move
         if he is the owner of it """
 
@@ -181,7 +181,7 @@ class PermissionsAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_delete_folder_not_user_owner(self):
+    def test_07_delete_folder_not_user_owner(self):
         """ Testing the permissions for delete folder. The user only can move
         if he is the owner of it """
 
