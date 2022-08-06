@@ -8,7 +8,7 @@ from django.contrib.auth.models import PermissionsMixin, AbstractUser
 from apps.core.models import BaseProjectModel
 from apps.directories.models import Folder
 
-from typing import Optional
+from typing import Optional, List, Set
 
 
 class User(AbstractUser, PermissionsMixin, BaseProjectModel):
@@ -83,6 +83,35 @@ class User(AbstractUser, PermissionsMixin, BaseProjectModel):
             return self.own_entity_directories.get(pk=id_folder)
         except Folder.DoesNotExist:
             return None
+
+    def get_all_folders_by_list_ids(self, list_ids: List[int]) -> 'QuerySet[Folder]':
+        """
+            Return all folders of the user that is contained in the list of ids
+
+            Parameters:
+                list_ids(List[int]): List of ids to search
+
+            Return:
+                folders(Queryset<Folder>): user's folders
+        """
+        return self.own_entity_directories.filter(pk__in=list_ids)
+
+    def get_all_names_of_folders_by_list_ids(self, list_ids: List[int]) -> Set[str]:
+        """
+            Returns the names of all the folders of the received
+            folders as pk in the list of identifiers of the user
+
+            Parameters:
+                list_ids(List[int]): List of folder pk to get the names
+
+            Return:
+                list_ids_parents(Set[int]): Set of folders names
+        """
+        folders = self.get_all_folders_by_list_ids(list_ids)
+
+        list_parent_names = set(folders.values_list('name', flat=True))
+
+        return list_parent_names
 
 
 @receiver(post_save, sender=User)

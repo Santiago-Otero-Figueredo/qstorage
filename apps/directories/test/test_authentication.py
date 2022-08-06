@@ -128,36 +128,37 @@ class AuthenticationAPITestCase(APITestCase):
     def test_05_move_folder_to_recicle_bin_authenticated(self):
         """ Testing the authorization for move folder to recicle bin action. The user have to be log in """
 
-        url_move_folder = reverse(
-            URL_MOVE_TO_RECICLE_BIN,
-            kwargs={'pk': self.user_1_nested_test_folder_2.pk}
-        )
+        payload = {
+            'folders_to_disable': [self.user_1_nested_test_folder_2.pk]
+        }
 
-        response = self.client.patch(url_move_folder)
+        url_move_folder = reverse(URL_MOVE_TO_RECICLE_BIN)
+        response = self.client.patch(url_move_folder, payload)
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_06_move_folder_to_recover_folder_authenticated(self):
         """ Testing the authorization for recover folder action. The user have to be log in """
 
-        url_recover_folder = reverse(
-            URL_RECOVER_FOLDER,
-            kwargs={'pk': self.user_1_nested_test_folder_2.pk}
-        )
+        payload = {
+            'folders_to_recover': [self.user_1_nested_test_folder_2.pk]
+        }
 
-        response = self.client.patch(url_recover_folder)
+        url_recover_folder = reverse(URL_RECOVER_FOLDER)
+        response = self.client.patch(url_recover_folder, payload)
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_07_delete_folder_authenticated(self):
         """ Testing the authorization for delete folder action. The user have to be log in """
 
-        url_delete_folder = reverse(
-            URL_DELETE_FOLDER,
-            kwargs={'pk': self.user_1_nested_test_folder_2.pk}
-        )
+        payload = {
+            'folders_to_delete': [self.user_1_nested_test_folder_2.pk]
+        }
 
-        response = self.client.delete(url_delete_folder)
+        url_delete_folder = reverse(URL_DELETE_FOLDER)
+
+        response = self.client.delete(url_delete_folder, payload)
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 

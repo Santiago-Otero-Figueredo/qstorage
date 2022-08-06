@@ -148,7 +148,8 @@ class FolderUpdateTest(FolderCRUDAPITest):
         mouse_folder = Folder.objects.get(pk=self.mouse.pk)
         headphones_folder = Folder.objects.get(pk=self.headphones.pk)
 
-        media_path_parent_folder = f'{settings.MEDIA_ROOT_TEST}{parent_folder.get_path_folder()}/{peripherals_folder.name}'
+        media_path = settings.MEDIA_ROOT_TEST
+        media_path_parent_folder = f'{media_path}{parent_folder.get_path_folder()}/{peripherals_folder.name}'
         media_path_keyboard_folder = f'{media_path_parent_folder}/{keyboard_folder.name}'
         media_path_mouse_folder = f'{media_path_parent_folder}/{mouse_folder.name}'
         media_path_headphones_folder = f'{media_path_parent_folder}/{headphones_folder.name}'

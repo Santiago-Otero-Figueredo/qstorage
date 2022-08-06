@@ -93,6 +93,11 @@ class PermissionsAPITestCase(APITestCase):
             name='user_2_test_1',
             route='/'
         )
+        cls.user_2_test_folder_2 = cls.root_folder_2.add_child(
+            owner_user=cls.user_2,
+            name='user_2_test_2',
+            route='/'
+        )
 
     def test_01_list_children_folders_not_permissions(self):
         """ Testing the permissions for list children folder action.
@@ -136,7 +141,6 @@ class PermissionsAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-
     def test_04_move_folder_not_user_owner(self):
         """ Testing the permissions for move folder. The user only can move
         if he is the owner of it """
@@ -157,43 +161,47 @@ class PermissionsAPITestCase(APITestCase):
         """ Testing the permissions for move folder to recicle bin. The user only can move
         if he is the owner of it """
 
-        url_move_folder = reverse(
-            URL_MOVE_TO_RECICLE_BIN,
-            kwargs={'pk': self.user_2_test_folder_1.pk}
-        )
+        payload = {
+            'folders_to_disable': [self.user_2_test_folder_1.pk]
+        }
+
+        url_move_folder = reverse(URL_MOVE_TO_RECICLE_BIN)
+
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token_1}')
 
-        response = self.client.patch(url_move_folder)
+        response = self.client.patch(url_move_folder, payload)
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_06_recover_folder_not_user_owner(self):
         """ Testing the permissions for recover folder. The user only can move
         if he is the owner of it """
 
-        url_recover_folder = reverse(
-            URL_RECOVER_FOLDER,
-            kwargs={'pk': self.user_2_test_folder_1.pk}
-        )
+        payload = {
+            'folders_to_recover': [self.user_2_test_folder_1.pk]
+        }
+
+        url_recover_folder = reverse(URL_RECOVER_FOLDER)
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token_1}')
 
-        response = self.client.patch(url_recover_folder)
+        response = self.client.patch(url_recover_folder, payload)
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_07_delete_folder_not_user_owner(self):
         """ Testing the permissions for delete folder. The user only can move
         if he is the owner of it """
 
-        url_delete_folder = reverse(
-            URL_DELETE_FOLDER,
-            kwargs={'pk': self.user_2_test_folder_1.pk}
-        )
+        payload = {
+            'folders_to_delete': [self.user_2_test_folder_1.pk]
+        }
+
+        url_delete_folder = reverse(URL_DELETE_FOLDER)
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token_1}')
 
-        response = self.client.delete(url_delete_folder)
+        response = self.client.delete(url_delete_folder, payload)
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     @classmethod
     def tearDownClass(cls):

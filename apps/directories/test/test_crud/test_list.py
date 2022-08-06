@@ -15,7 +15,6 @@ class FolderListTest(FolderCRUDAPITest):
     def test_01_list_folder_method_not_allowed(self):
         """ Testing not allow methods in function """
 
-
         url_list_folder = reverse(URL_LIST_CHILDREN, kwargs={'pk': self.root_folder.pk})
 
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
@@ -110,13 +109,4 @@ class FolderListTest(FolderCRUDAPITest):
         response = self.client.get(url_list_folder)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(len(response.data)==0)
-
-
-
-
-
-
-
-
-
+        self.assertTrue(len(response.data) == 0)

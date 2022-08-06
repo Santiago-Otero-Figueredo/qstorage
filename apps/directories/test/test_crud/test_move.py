@@ -10,7 +10,7 @@ from apps.directories.test.test_crud import FolderCRUDAPITest
 import os.path
 
 URL_MOVE_FOLDER = 'directories:folders-move-folder'
-from pprint import pprint
+
 
 @override_settings(MEDIA_ROOT=settings.MEDIA_ROOT_TEST)
 class FolderMoveTest(FolderCRUDAPITest):
@@ -216,7 +216,6 @@ class FolderMoveTest(FolderCRUDAPITest):
         # Validation of folders move in media folder
         self.assertTrue(os.path.exists(media_path_1070))
         self.assertTrue(os.path.exists(media_path_1080))
-
 
     def test_10_move_folder_with_children(self):
         """ Testing to move a folder with children to another folder

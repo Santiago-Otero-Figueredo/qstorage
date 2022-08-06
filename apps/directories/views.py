@@ -7,7 +7,6 @@ from apps.directories.models import Folder
 
 from .serializers import FolderCreateSerializer
 from .permissions import IsAuthenticatedOwnerUser
-from .utils.folder_manager import FolderManager
 
 
 class FolderVS(ModelViewSet):
@@ -80,9 +79,9 @@ class FolderVS(ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        if Folder.get_elements_by_list_id(folders_to_move).count() != len(folders_to_move):
+        if self.request.user.get_all_folders_by_list_ids(folders_to_move).count() != len(folders_to_move):
             return Response(
-                {'message':'You do not have the right permissions to move the folders'},
+                {'message': 'You do not have the right permissions to move the folders'},
                 status=status.HTTP_403_FORBIDDEN
             )
 
@@ -98,7 +97,7 @@ class FolderVS(ModelViewSet):
                 status=status.HTTP_412_PRECONDITION_FAILED
             )
 
-        if Folder.get_all_names_of_folders_in_list_ids(folders_to_move) & new_parent_folder.get_children_folder():
+        if self.request.user.get_all_names_of_folders_by_list_ids(folders_to_move) & new_parent_folder.get_children_folder():
             return Response(
                 {'message': 'The new folder to be moved to must be different name of the children folder'},
                 status=status.HTTP_412_PRECONDITION_FAILED
@@ -115,36 +114,119 @@ class FolderVS(ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-    @action(detail=True, methods=['patch'], url_path='move-to-recycle-bin',
+    @action(detail=False, methods=['patch'], url_path='move-to-recycle-bin',
             url_name='move-to-recycle-bin', permission_classes=[IsAuthenticatedOwnerUser])
-    def move_to_recycle_bin(self, request, pk):
-        """ move folder to the recycle bin and prepare for his elimination """
-        element = self.get_object()
+    def move_to_recycle_bin(self, request):
+        """ move folders to the recycle bin and prepare for his elimination """
+
+        data = dict(request.data)
+        list_of_ids_to_disable = data.get('folders_to_disable', None)
         try:
-            element.disable_folder_and_children()
-            return Response({'message': 'Folder and children moved to recycle bin. Will be delete in 3 days'})
+
+            if list_of_ids_to_disable is None or len(list_of_ids_to_disable) == 0:
+                return Response(
+                    {'message': 'The folders_to_disable field is required.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            folders_to_disable = list(map(int, list_of_ids_to_disable))
+
+            if self.request.user.get_all_folders_by_list_ids(folders_to_disable).count() != len(folders_to_disable):
+                return Response(
+                    {'message': 'You do not have the right permissions to move the folders'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            if Folder.disabled_many_folder_and_children(folders_to_disable) is True:
+                return Response(
+                    {'message': 'Folder and children moved to recycle bin. Will be delete in 3 days'},
+                    status=status.HTTP_200_OK
+                )
+            else:
+                return Response(
+                    {'message': 'An error occurred while moving the folder.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
         except Exception:
             return Response({'message': 'An error has occurred'}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['patch'], url_path='recover-folder',
+    @action(detail=False, methods=['patch'], url_path='recover-folder',
             url_name='recover-folder', permission_classes=[IsAuthenticatedOwnerUser])
-    def recover_folder(self, request, pk):
-        """ move folder to the recycle bin and prepare for his elimination """
-        element = self.get_object()
+    def recover_folder(self, request):
+        """ move folders to the recycle bin and prepare for his elimination """
+        data = dict(request.data)
+        list_of_ids_to_recover = data.get('folders_to_recover', None)
+
         try:
-            element.activate_folder_and_children()
-            return Response({'message': 'Folder and children recover successfully'})
+
+            if list_of_ids_to_recover is None or len(list_of_ids_to_recover) == 0:
+                return Response(
+                    {'message': 'The folders_to_recover field is required.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            folders_to_recover = list(map(int, list_of_ids_to_recover))
+
+            if self.request.user.get_all_folders_by_list_ids(folders_to_recover).count() != len(folders_to_recover):
+                return Response(
+                    {'message': 'You do not have the right permissions to move the folders'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            if Folder.recover_many_folder_and_children(folders_to_recover) is True:
+                return Response(
+                    {'message': 'Folder and children recover successfully'},
+                    status=status.HTTP_200_OK
+                )
+            else:
+                return Response(
+                    {'message': 'An error occurred while moving the folder.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
         except Exception:
             return Response({'message': 'An error has occurred'}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['delete'], url_path='delete-folder',
+    @action(detail=False, methods=['delete'], url_path='delete-folder',
             url_name='delete-folder', permission_classes=[IsAuthenticatedOwnerUser])
-    def delete_folder(self, request, pk):
-        """ move folder to the recycle bin and prepare for his elimination """
-        element = self.get_object()
+    def delete_folder(self, request):
+        """ Delete the folder and his children folder with all the content """
+        data = dict(request.data)
+        list_of_ids_to_delete = data.get('folders_to_delete', None)
+
         try:
-            folder_manager = FolderManager(element)
-            folder_manager._delete_folder()
-            return Response({'message': 'Folder and children deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+            if list_of_ids_to_delete is None or len(list_of_ids_to_delete) == 0:
+                return Response(
+                    {'message': 'The folders_to_delete field is required.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            folders_to_delete = list(map(int, list_of_ids_to_delete))
+
+            if Folder.get_root_folder_by_user(self.request.user).pk in folders_to_delete:
+                return Response(
+                    {'message': 'You do not have the right permissions to delete the root folder'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            if self.request.user.get_all_folders_by_list_ids(folders_to_delete).count() != len(folders_to_delete):
+                return Response(
+                    {'message': 'You do not have the right permissions to delete the folders'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            if Folder.delete_many_folder_and_children(folders_to_delete) is True:
+                return Response(
+                    {'message': 'Folder and children deleted successfully'},
+                    status=status.HTTP_204_NO_CONTENT
+                )
+
+            else:
+                return Response(
+                    {'message': 'An error occurred while deleting the folder.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
         except Exception:
             return Response({'message': 'An error has occurred'}, status=status.HTTP_400_BAD_REQUEST)

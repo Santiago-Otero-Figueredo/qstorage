@@ -51,7 +51,6 @@ class FolderCreateTest(FolderCRUDAPITest):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-
     def test_03_create_folder_in_root(self):
         """ Testing the creation of a folder in the root folder """
         payload = {
@@ -76,7 +75,6 @@ class FolderCreateTest(FolderCRUDAPITest):
         self.assertTrue(child_folder.is_child_of(parent_folder))
         # Validation of folders move in media folder
         self.assertTrue(os.path.exists(media_path_new_folder))
-
 
     def test_04_create_folder_in_child_folder(self):
         """ Testing the creation of a folder inside another folder other than root folder """

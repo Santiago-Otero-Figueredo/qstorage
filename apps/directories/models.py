@@ -117,13 +117,37 @@ class Folder(MP_Node, BaseProjectModel):
             Move a Folder with all its contents into another and return if the result of the action.
 
             Parameters:
-                folder(Folder): The folder to be moved
+                folders_id(List[int]): The list of ids folder to be moved
                 new_parent_folder(Folder): The new parent folder where it will be moved
+
+            Return:
+                result(bool): True if success or False otherwise
         """
         try:
             folders_to_move = Folder.get_elements_by_list_id(folders_id)
             for folder in folders_to_move:
                 Folder.move_folder_into_another(folder, new_parent_folder)
+            return True
+        except Exception:
+            return False
+
+    @staticmethod
+    def delete_many_folder_and_children(folders_id: List[int]) -> bool:
+        """
+            Delete a Folder with all its contents and return if the result of the action.
+
+            Parameters:
+                folders_id(List[int]): The list of ids folder to be delete
+
+            Return:
+                result(bool): True if success or False otherwise
+        """
+
+        try:
+            folders_to_disable = Folder.get_elements_by_list_id(folders_id)
+            for folder in folders_to_disable:
+                folder_manager = FolderManager(folder)
+                folder_manager._delete_folder()
             return True
         except Exception:
             return False
@@ -148,22 +172,44 @@ class Folder(MP_Node, BaseProjectModel):
         return list_parent_pk
 
     @staticmethod
-    def get_all_names_of_folders_in_list_ids(list_ids: List[int]) -> Set[str]:
+    def disabled_many_folder_and_children(folders_id: List[int]) -> bool:
         """
-            Returns the names of all the folders of the received
-            folders as pk in the list of identifiers
+            Disable many folders with all its contents into another and return if the result of the action.
 
             Parameters:
-                list_ids(List[int]): List of folder pk to get the names
+                folders_id(Folder): The list of ids folder to be moved to the recicle bin
 
             Return:
-                list_ids_parents(Set[int]): Set of folders names
+                result(bool): True if success or False otherwise
+
         """
-        folders = Folder.get_elements_by_list_id(list_ids)
+        try:
+            folders_to_disable = Folder.get_elements_by_list_id(folders_id)
+            for folder in folders_to_disable:
+                folder.disable_folder_and_children()
+            return True
+        except Exception:
+            return False
 
-        list_parent_names = set(folders.values_list('name', flat=True))
+    @staticmethod
+    def recover_many_folder_and_children(folders_id: List[int]) -> bool:
+        """
+            Activate many folders with all its contents into another and return if the result of the action.
 
-        return list_parent_names
+            Parameters:
+                folders_id(Folder): The list of ids folder to be recover from the recicle bin
+
+            Return:
+                result(bool): True if success or False otherwise
+
+        """
+        try:
+            folders_to_disable = Folder.get_elements_by_list_id(folders_id)
+            for folder in folders_to_disable:
+                folder.activate_folder_and_children()
+            return True
+        except Exception:
+            return False
 
     def get_ancestors_folder(self) -> List[str]:
         """
