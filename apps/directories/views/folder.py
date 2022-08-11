@@ -5,21 +5,21 @@ from rest_framework.response import Response
 
 from apps.directories.models import Folder
 
-from .serializers import FolderCreateSerializer
-from .permissions import IsAuthenticatedOwnerUser
+from ..serializers import FolderCreateSerializer
+from ..permissions import IsAuthenticatedOwnerFolderUser
 
 
 class FolderVS(ModelViewSet):
 
     serializer_class = FolderCreateSerializer
-    permission_classes = [IsAuthenticatedOwnerUser]
+    permission_classes = [IsAuthenticatedOwnerFolderUser]
     http_method_names = ['get', 'patch', 'post', 'delete']
 
     def get_queryset(self):
         return self.request.user.own_entity_directories.all()
 
     @action(detail=True, methods=['post'], url_path='create-folder',
-            url_name='create-folder', permission_classes=[IsAuthenticatedOwnerUser])
+            url_name='create-folder', permission_classes=[IsAuthenticatedOwnerFolderUser])
     def create_new_folder(self, request, pk):
         """ Create a new folder inside another using the pk to get the parent folder"""
 
@@ -37,7 +37,7 @@ class FolderVS(ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['get'], url_path='children-folders',
-            url_name='children-folders', permission_classes=[IsAuthenticatedOwnerUser])
+            url_name='children-folders', permission_classes=[IsAuthenticatedOwnerFolderUser])
     def list_children_folders(self, request, pk):
         """ List the children folders of the folder parent"""
 
@@ -48,7 +48,7 @@ class FolderVS(ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=False, methods=['post'], url_path='move-folder',
-            url_name='move-folder', permission_classes=[IsAuthenticatedOwnerUser])
+            url_name='move-folder', permission_classes=[IsAuthenticatedOwnerFolderUser])
     def move_folder(self, request):
         """ Move the folder content to another folder """
 
@@ -115,7 +115,7 @@ class FolderVS(ModelViewSet):
             )
 
     @action(detail=False, methods=['patch'], url_path='move-to-recycle-bin',
-            url_name='move-to-recycle-bin', permission_classes=[IsAuthenticatedOwnerUser])
+            url_name='move-to-recycle-bin', permission_classes=[IsAuthenticatedOwnerFolderUser])
     def move_to_recycle_bin(self, request):
         """ move folders to the recycle bin and prepare for his elimination """
 
@@ -152,7 +152,7 @@ class FolderVS(ModelViewSet):
             return Response({'message': 'An error has occurred'}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['patch'], url_path='recover-folder',
-            url_name='recover-folder', permission_classes=[IsAuthenticatedOwnerUser])
+            url_name='recover-folder', permission_classes=[IsAuthenticatedOwnerFolderUser])
     def recover_folder(self, request):
         """ move folders to the recycle bin and prepare for his elimination """
         data = dict(request.data)
@@ -189,7 +189,7 @@ class FolderVS(ModelViewSet):
             return Response({'message': 'An error has occurred'}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['delete'], url_path='delete-folder',
-            url_name='delete-folder', permission_classes=[IsAuthenticatedOwnerUser])
+            url_name='delete-folder', permission_classes=[IsAuthenticatedOwnerFolderUser])
     def delete_folder(self, request):
         """ Delete the folder and his children folder with all the content """
         data = dict(request.data)

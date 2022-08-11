@@ -69,6 +69,18 @@ class User(AbstractUser, PermissionsMixin, BaseProjectModel):
         """
         return self.own_entity_directories.filter(pk=id_folder).exists()
 
+    def is_owner_file(self, id_file: int) -> bool:
+        """
+            Return if the user is owner of the file
+
+            Parameter:
+                id_file(int): id of the file to validate
+
+            Return:
+                owner(bool): is owner
+        """
+        return self.own_entity_directories.filter(files__pk=id_file).exists()
+
     def get_folder_by_id(self, id_folder: int) -> Optional[Folder]:
         """
             Return if the user is owner of the folder

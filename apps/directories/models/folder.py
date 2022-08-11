@@ -1,20 +1,23 @@
-from typing import List, Optional, TYPE_CHECKING, Set
-
 from django.db import models
+from django.db.models import QuerySet
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.conf import settings
 
+
 from apps.core.models import BaseProjectModel
 
-from .utils.folder_manager import (FolderManager,
-                                  move_folders_in_media)
+from ..utils.folder_manager import (FolderManager,
+                                    move_folders_in_media)
 
-# Create your models here.
 from treebeard.mp_tree import MP_Node
+
+from typing import List, Optional, TYPE_CHECKING, Set
+
 
 if TYPE_CHECKING:
     from apps.users.models import User
+    from apps.directories.models import File
 
 
 class Folder(MP_Node, BaseProjectModel):
@@ -211,6 +214,11 @@ class Folder(MP_Node, BaseProjectModel):
         except Exception:
             return False
 
+    def get_all_files(self) -> QuerySet['File']:
+        """ Return all files associated to the actual folder """
+
+        return self.files.all()
+
     def get_ancestors_folder(self) -> List[str]:
         """
             Return ancestors folder
@@ -292,17 +300,6 @@ class Folder(MP_Node, BaseProjectModel):
 def pre_save_assign_root_folder(sender, instance, update_fields, *args, **kwargs):
     folder_manager = FolderManager(folder=instance)
     folder_manager._execute_pre_save_function()
-
-
-class File(BaseProjectModel):
-    parent_folder = models.ForeignKey(
-        Folder,
-        verbose_name='Parent folder',
-        related_name='files',
-        on_delete=models.CASCADE
-    )
-    type = models.CharField(max_length=30)
-    size = models.PositiveBigIntegerField()
 
 
 class Collaboration(BaseProjectModel):

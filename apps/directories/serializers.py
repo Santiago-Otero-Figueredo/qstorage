@@ -1,7 +1,8 @@
+from dataclasses import fields
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import Folder
+from .models import Folder, File
 
 
 class FolderCreateSerializer(serializers.ModelSerializer):
@@ -32,3 +33,11 @@ class FolderCreateSerializer(serializers.ModelSerializer):
             raise ValidationError("There cannot be two folders with the same name")
 
         return data
+
+
+class FileSerializer(serializers.ModelSerializer):
+    parent_folder = serializers.PrimaryKeyRelatedField(queryset=Folder.get_all())
+
+    class Meta:
+        model = File
+        fields = ['pk', 'parent_folder', 'name', 'file']
