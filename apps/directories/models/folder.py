@@ -270,6 +270,18 @@ class Folder(MP_Node, BaseProjectModel):
             return f'{path}/{self.name}'
         return path
 
+    def get_absolute_path_folder(self) -> str:
+        """
+            Return the absolute path of the folder including the media
+
+            Return:
+                path(str): absolute path of the folder
+        """
+        media = settings.MEDIA_ROOT
+        path = f'{media}/{self.get_path_folder()}'
+
+        return path
+
     def update_route_parent_folder_and_children(self) -> None:
         """
             Update the path of the actual folder and his children. This method

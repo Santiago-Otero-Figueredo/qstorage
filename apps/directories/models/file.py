@@ -1,7 +1,10 @@
+from distutils import extension
+from django.core.files import File
 from django.db import models
 from django.db.models import QuerySet
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import pre_save
 from django.dispatch import receiver
+
 from apps.core.models import BaseProjectModel
 
 from typing import TYPE_CHECKING
@@ -9,6 +12,7 @@ from typing import TYPE_CHECKING
 from ..models import Folder
 
 import os
+import shutil
 
 if TYPE_CHECKING:
     from apps.users.models import User
@@ -29,7 +33,7 @@ class File(BaseProjectModel):
         related_name='file_details',
         on_delete=models.CASCADE,
     )
-    name = models.CharField(max_length=255, verbose_name='Name of the file')
+    name = models.CharField(max_length=255, verbose_name='Name of the file', blank=True)
     file = models.FileField(upload_to=get_upload_path)
 
     @staticmethod
@@ -53,27 +57,38 @@ class File(BaseProjectModel):
 
             print("###################### self: ",self)
             old_file = File.get_by_id(self.pk)
-            old_folder = old_file.parent_folder.get_path_folder()
-            new_folder = self.parent_folder.get_path_folder()
+            old_folder = old_file.parent_folder.get_absolute_path_folder()
+            new_folder = self.parent_folder.get_absolute_path_folder()
 
             new_file_name = self.name
             old_file_name = old_file.name
 
+            print(kwargs)
             print("new_file_name: ", new_file_name, ' old_file_name: ', old_file_name)
             if old_folder != new_folder:
 
                 new_rename = f'{new_folder}/{new_file_name}'
 
                 old_path = old_folder
-                old_rename = f'{old_path}/{new_file_name}'
+                old_rename = f'{old_path}/{old_file_name}'
 
-                print("##########: new_rename", new_rename , "=old_rename=", old_rename)
                 # os.rename(path, rename)
-                # file = File(open(rename))
-                # self.file.save(self.label, file)
+                shutil.move(old_rename, new_rename)
+                self.file = f'{self.parent_folder.get_path_folder()}/{new_file_name}'
 
             if old_file_name != new_file_name:
-                print("IMPLEMENTAR CAMBIO DE NOMBRE")
+                extension = self.details.type
+
+                new_rename = f'{new_folder}/{new_file_name}.{extension}'
+                old_path = old_folder
+                old_rename = f'{old_path}/{old_file_name}'
+
+                print("##########: new_rename", new_rename , "=old_rename=", old_rename)
+
+
+                os.rename(old_rename, new_rename)
+                self.file = f'{self.parent_folder.get_path_folder()}/{new_file_name}.{extension}'
+                self.name = f'{self.name}.{extension}'
 
         return super(File, self).save(**kwargs)
 
