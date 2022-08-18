@@ -10,6 +10,7 @@ from apps.core.models import BaseProjectModel
 from typing import TYPE_CHECKING
 
 from ..models import Folder
+from ..utils.file_manager import FileManager
 
 import os
 import shutil
@@ -49,46 +50,22 @@ class File(BaseProjectModel):
 
         return File.objects.filter(parent_folder__owner_user__pk=user.pk)
 
+    def get_full_name(self):
+        """ Return the name and the extension of the file """
+        if '.' not in self.name:
+            return f'{self.name}.{self.details.type}'
+        return self.name
+
     def save(self, **kwargs):
         # here we use os.rename then change the name of the file
         # add condition to do this, I suggest requerying the model
         # and checking if label is different
         if self.pk:  # Need this to mitigate error using self.pk
 
-            print("###################### self: ",self)
             old_file = File.get_by_id(self.pk)
-            old_folder = old_file.parent_folder.get_absolute_path_folder()
-            new_folder = self.parent_folder.get_absolute_path_folder()
 
-            new_file_name = self.name
-            old_file_name = old_file.name
-
-            print(kwargs)
-            print("new_file_name: ", new_file_name, ' old_file_name: ', old_file_name)
-            if old_folder != new_folder:
-
-                new_rename = f'{new_folder}/{new_file_name}'
-
-                old_path = old_folder
-                old_rename = f'{old_path}/{old_file_name}'
-
-                # os.rename(path, rename)
-                shutil.move(old_rename, new_rename)
-                self.file = f'{self.parent_folder.get_path_folder()}/{new_file_name}'
-
-            if old_file_name != new_file_name:
-                extension = self.details.type
-
-                new_rename = f'{new_folder}/{new_file_name}.{extension}'
-                old_path = old_folder
-                old_rename = f'{old_path}/{old_file_name}'
-
-                print("##########: new_rename", new_rename , "=old_rename=", old_rename)
-
-
-                os.rename(old_rename, new_rename)
-                self.file = f'{self.parent_folder.get_path_folder()}/{new_file_name}.{extension}'
-                self.name = f'{self.name}.{extension}'
+            file_manager = FileManager(self, old_file)
+            file_manager._process_save()
 
         return super(File, self).save(**kwargs)
 
@@ -104,6 +81,8 @@ def pre_save_assign_root_folder(sender, instance, update_fields, *args, **kwargs
             size=instance.file.size
         )
         instance.details = detail
+    else:
+        instance.name = instance.get_full_name()
 
 
 class Detail(BaseProjectModel):

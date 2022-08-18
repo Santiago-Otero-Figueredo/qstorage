@@ -10,7 +10,6 @@ from ..models import File
 from ..serializers import FileSerializer
 from ..permissions import IsAuthenticatedOwnerFolderFileUser
 
-
 class FileVS(ModelViewSet):
 
     serializer_class = FileSerializer
