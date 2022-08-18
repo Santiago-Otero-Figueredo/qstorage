@@ -34,9 +34,9 @@ class IsAuthenticatedOwnerFolderFileUser(permissions.IsAuthenticated):
             user_folders = request.user.get_all_folders().values_list('pk', flat=True)
 
             actual_folder = data.get('parent_folder', None)
-            print('user_folders: ', user_folders, 'actual_folder: ', actual_folder)
+            print(actual_folder)
             if actual_folder is not None:
-                return int(actual_folder[0]) in user_folders
+                return int(actual_folder) in user_folders
 
         return super().has_permission(request, view)
 

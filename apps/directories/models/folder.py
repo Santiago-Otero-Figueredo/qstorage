@@ -219,6 +219,14 @@ class Folder(MP_Node, BaseProjectModel):
 
         return self.files.all()
 
+    def get_all_files_name(self) -> Set[str]:
+        """ Return all the name files in the folder
+
+            Return
+                names(Set[str]): All folder pk
+        """
+        return set(self.get_all_files().values_list('name', flat=True))
+
     def get_ancestors_folder(self) -> List[str]:
         """
             Return ancestors folder

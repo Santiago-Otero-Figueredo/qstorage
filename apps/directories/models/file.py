@@ -7,7 +7,7 @@ from django.dispatch import receiver
 
 from apps.core.models import BaseProjectModel
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Set
 
 from ..models import Folder
 from ..utils.file_manager import FileManager
@@ -49,6 +49,81 @@ class File(BaseProjectModel):
         """
 
         return File.objects.filter(parent_folder__owner_user__pk=user.pk)
+
+    @staticmethod
+    def get_all_files_by_user_and_list_ids(user: 'User', list_ids: List['int']) -> QuerySet['File']:
+        """ Return all the files in all folders of a user received and a list of ids
+
+            Parameter:
+                user(User): user used to make the search
+                list_ids(List['int']): list of ides of files to search
+
+            Return
+                filer(QuerySet['File']): All files of the user
+        """
+
+        return File.get_all_files_by_user(user).filter(pk__in=list_ids)
+
+    @staticmethod
+    def get_all_files_names_by_user_and_list_ids(user: 'User', list_ids: List['int']) -> Set[str]:
+        """ Return all the files names in all folders of a user received and a list of ids
+
+            Parameter:
+                user(User): user used to make the search
+                list_ids(List['int']): list of ides of files to search
+
+            Return
+                files_names(Set[str]): All files names of the user
+        """
+
+        return set(File.get_all_files_by_user_and_list_ids(user, list_ids).values_list('name', flat=True))
+
+    @staticmethod
+    def get_all_name_files_by_list_ids(list_ids: List['int']) -> Set[str]:
+        """ Return all the name files in the list of ids
+
+            Parameter:
+                list_ids(List['int']): list of ides of files to search
+
+            Return
+                names(Set[str]): All folder pk
+        """
+
+        return set(File.get_elements_by_list_id(list_ids).values_list('name', flat=True))
+
+    @staticmethod
+    def get_all_pk_parent_folder_list_ids_files(list_ids: List['int']) -> Set[int]:
+        """ Return all the pk parent folder of the files in the list of ids
+
+            Parameter:
+                list_ids(List['int']): list of ides of files to search
+
+            Return
+                pk_folders(Set[int]): All folder pk
+        """
+
+        return set(File.get_elements_by_list_id(list_ids).values_list('parent_folder__pk', flat=True))
+
+    @staticmethod
+    def move_many_files_into_another_folder(files_ids: List[int], new_parent_folder: 'Folder') -> bool:
+        """
+            Move a files into another folder and return if the result of the action.
+
+            Parameters:
+                files_ids(List[int]): The list of ids files to be moved
+                new_parent_folder(Folder): The new parent folder where it will be moved
+
+            Return:
+                result(bool): True if success or False otherwise
+        """
+        try:
+            files_to_move = File.get_elements_by_list_id(files_ids)
+            for file in files_to_move:
+                file.parent_folder = new_parent_folder
+                file.save()
+            return True
+        except Exception:
+            return False
 
     def get_full_name(self):
         """ Return the name and the extension of the file """
