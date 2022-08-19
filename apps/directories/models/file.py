@@ -1,5 +1,3 @@
-from distutils import extension
-from django.core.files import File
 from django.db import models
 from django.db.models import QuerySet
 from django.db.models.signals import pre_save
@@ -13,13 +11,14 @@ from ..models import Folder
 from ..utils.file_manager import FileManager
 
 import os
-import shutil
 
 if TYPE_CHECKING:
     from apps.users.models import User
 
+
 def get_upload_path(instance, filename):
     return os.path.join(f'{instance.parent_folder.get_path_folder()}/{filename}')
+
 
 class File(BaseProjectModel):
     parent_folder = models.ForeignKey(
@@ -152,7 +151,7 @@ def pre_save_assign_root_folder(sender, instance, update_fields, *args, **kwargs
         name_file, extension = os.path.splitext(instance.file.name)
         instance.name = f'{name_file}{extension}'
         detail = Detail.objects.create(
-            type=extension.replace('.',''),
+            type=extension.replace('.', ''),
             size=instance.file.size
         )
         instance.details = detail

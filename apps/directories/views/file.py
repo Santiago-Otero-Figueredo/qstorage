@@ -1,5 +1,3 @@
-from functools import partial
-from traceback import print_tb
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
@@ -10,6 +8,7 @@ from apps.directories.models import Folder
 from ..models import File
 from ..serializers import FileSerializer
 from ..permissions import IsAuthenticatedOwnerFolderFileUser
+
 
 class FileVS(ModelViewSet):
 
@@ -32,7 +31,6 @@ class FileVS(ModelViewSet):
     #     else:
     #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
     @action(detail=False, methods=['get'], url_path='list-files',
             url_name='list-files', permission_classes=[IsAuthenticatedOwnerFolderFileUser])
     def list_children_folders(self, request):
@@ -49,7 +47,6 @@ class FileVS(ModelViewSet):
         serializer = FileSerializer(parent_folder.get_all_files(), many=True)
 
         return Response(serializer.data)
-
 
     @action(detail=False, methods=['patch'], url_path='move-files',
             url_name='move-files', permission_classes=[IsAuthenticatedOwnerFolderFileUser])

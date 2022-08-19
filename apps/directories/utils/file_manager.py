@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 class FileManager():
 
-    def __init__(self, actual_file:'File', old_file: 'File' = None) -> None:
+    def __init__(self, actual_file: 'File', old_file: 'File' = None) -> None:
         self.media_root_path = settings.MEDIA_ROOT
         self.actual_file = actual_file
         self.old_file = old_file
@@ -68,7 +68,6 @@ class FileManager():
         self.actual_file.file = f'{self.actual_file.parent_folder.get_path_folder()}/{self.actual_file.get_full_name()}'
         self.actual_file.name = self.actual_file.get_full_name()
 
-
     def _process_save(self):
 
         old_folder = self.old_file.parent_folder.get_absolute_path_folder()
@@ -86,5 +85,3 @@ class FileManager():
     def _delete_folder(self) -> None:
 
         pass
-
-

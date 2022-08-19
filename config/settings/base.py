@@ -7,7 +7,7 @@ from datetime import timedelta
 ROOT_DIR = environ.Path(__file__) - 3
 BASE_DIR = ROOT_DIR
 APPS_DIR = ROOT_DIR.path('apps')
-
+DATOS_INICIALES = ROOT_DIR.path('_datos_iniciales')
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 from django.core.exceptions import ImproperlyConfigured
 

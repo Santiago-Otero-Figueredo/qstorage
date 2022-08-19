@@ -18,7 +18,7 @@ lint:
 code-checker:
 	flake8 apps/$(app) \
 	--exclude .git,__pycache__,"apps/*/migrations/",__init__.py \
-	--max-line-length 126 \
+	--max-line-length 135 \
 	--ignore=E128,E124
 
 coverage-test:
