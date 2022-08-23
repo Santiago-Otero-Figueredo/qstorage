@@ -19,18 +19,6 @@ class FileVS(ModelViewSet):
     def get_queryset(self):
         return File.get_all_files_by_user(self.request.user)
 
-    # def partial_update(self, request, *args, **kwargs):
-
-    #     print("#############----")
-
-    #     instance = self.get_object()
-    #     serializer = self.get_serializer(instance, data=request.data, partial=True)
-    #     if serializer.is_valid():
-    #         print(serializer.data)
-    #         return Response(serializer.data)
-    #     else:
-    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
     @action(detail=False, methods=['get'], url_path='list-files',
             url_name='list-files', permission_classes=[IsAuthenticatedOwnerFolderFileUser])
     def list_children_folders(self, request):
@@ -52,7 +40,7 @@ class FileVS(ModelViewSet):
             url_name='move-files', permission_classes=[IsAuthenticatedOwnerFolderFileUser])
     def move_files(self, request):
         id_new_parent_folder = self.request.data.get('parent_folder', None)
-        list_of_ids_to_move = self.request.data.get('files_to_move', None)
+        list_of_ids_to_move = self.request.data.getlist('files_to_move', None)
 
         if id_new_parent_folder is None:
             return Response(

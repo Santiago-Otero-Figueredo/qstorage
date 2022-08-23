@@ -28,13 +28,11 @@ class IsAuthenticatedOwnerFolderUser(permissions.IsAuthenticated):
 class IsAuthenticatedOwnerFolderFileUser(permissions.IsAuthenticated):
 
     def has_permission(self, request, view) -> bool:
-        data = dict(request.data)
 
         if super().has_permission(request, view):
             user_folders = request.user.get_all_folders().values_list('pk', flat=True)
 
-            actual_folder = data.get('parent_folder', None)
-            print(actual_folder)
+            actual_folder = request.POST.get('parent_folder', None)
             if actual_folder is not None:
                 return int(actual_folder) in user_folders
 

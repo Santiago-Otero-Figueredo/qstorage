@@ -58,6 +58,7 @@ class FileCRUDAPITest(APITestCase):
                     |- Budget.csv
                 |- Windows.pdf
                 |- linux.pdf
+                |- Software
         """
         super(FileCRUDAPITest, cls).setUpClass()
         cls.user = get_user_model().objects.create(
@@ -122,6 +123,11 @@ class FileCRUDAPITest(APITestCase):
             parent_folder=cls.peripherals,
             file=upload_file_temporally('Headphones.png')
         )  # F Peripherals
+
+        cls.software = Folder.create_folder_and_assign_to_parent(cls.user, 'Software', cls.hardware) # ROOT
+
+        cls.f_s_linux = File.objects.create(parent_folder=cls.software, file=upload_file_temporally('linux.pdf'))  # F Software
+
 
     @classmethod
     def tearDownClass(cls):

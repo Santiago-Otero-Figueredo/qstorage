@@ -100,7 +100,6 @@ class File(BaseProjectModel):
             Return
                 pk_folders(Set[int]): All folder pk
         """
-
         return set(File.get_elements_by_list_id(list_ids).values_list('parent_folder__pk', flat=True))
 
     @staticmethod
