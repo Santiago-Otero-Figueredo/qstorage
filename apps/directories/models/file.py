@@ -120,14 +120,20 @@ class File(BaseProjectModel):
                 file.parent_folder = new_parent_folder
                 file.save()
             return True
-        except Exception:
+        except Exception as e:
+            print(e)
             return False
 
-    def get_full_name(self):
+    def get_full_name(self) -> str:
         """ Return the name and the extension of the file """
         if '.' not in self.name:
             return f'{self.name}.{self.details.type}'
         return self.name
+
+    def get_full_path(self) -> str:
+        """ Return the full path of the file """
+
+        return f'{self.parent_folder.get_absolute_path_folder()}/{self.get_full_name()}'
 
     def save(self, **kwargs):
         # here we use os.rename then change the name of the file

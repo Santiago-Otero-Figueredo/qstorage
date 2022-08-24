@@ -214,19 +214,6 @@ class Folder(MP_Node, BaseProjectModel):
         except Exception:
             return False
 
-    def get_all_files(self) -> QuerySet['File']:
-        """ Return all files associated to the actual folder """
-
-        return self.files.all()
-
-    def get_all_files_name(self) -> Set[str]:
-        """ Return all the name files in the folder
-
-            Return
-                names(Set[str]): All folder pk
-        """
-        return set(self.get_all_files().values_list('name', flat=True))
-
     def get_ancestors_folder(self) -> List[str]:
         """
             Return ancestors folder
@@ -286,7 +273,7 @@ class Folder(MP_Node, BaseProjectModel):
                 path(str): absolute path of the folder
         """
         media = settings.MEDIA_ROOT
-        path = f'{media}/{self.get_path_folder()}'
+        path = f'{media}{self.get_path_folder()}'
 
         return path
 
@@ -314,6 +301,30 @@ class Folder(MP_Node, BaseProjectModel):
         folder = Folder.get_element_by_id_like_queryset(self.pk)
         folder.update(is_active=True)
         self.get_descendants().update(is_active=True)
+
+    def get_all_files(self) -> QuerySet['File']:
+        """ Return all files associated to the actual folder """
+
+        return self.files.all()
+
+    def get_all_files_name(self) -> Set[str]:
+        """ Return all the name files in the folder
+
+            Return
+                names(Set[str]): All folder pk
+        """
+        return set(self.get_all_files().values_list('name', flat=True))
+
+    def is_inside_folder(self, id_file: int) -> bool:
+        """ Return if the file is inside th folder
+
+            Parameters:
+                id_file(int): id of the file to search
+
+            Return
+                exists(boll): Return True is exists in the folder or False otherwise
+        """
+        return self.get_all_files().filter(pk=id_file).exists()
 
 
 @receiver(pre_save, sender=Folder)

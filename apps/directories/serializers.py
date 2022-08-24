@@ -47,7 +47,7 @@ class FileSerializer(serializers.ModelSerializer):
         #     if duplicate:
         #         raise ValidationError("There cannot be two files with the same name")
 
-        if self.instance.name != complete_name:
+        if self.instance.get_full_name() != complete_name:
             duplicate = self.instance.parent_folder.get_all_files().filter(name=complete_name).exists()
 
             if duplicate:

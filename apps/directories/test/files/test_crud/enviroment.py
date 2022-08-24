@@ -39,14 +39,14 @@ class FileCRUDAPITest(APITestCase):
                             |- Series_1000.pdf
                             |- Series_2000.pdf
                         |- AMD
-                            |- Series 4000.pdf
-                            |- Series 5000.pdf
+                            |- Series_4000.pdf
+                            |- Series_5000.pdf
                         |- RTX
                             |- TI
-                                |- 2060 TI.png
-                                |- 3070 TI.png
-                                |- 1070 TI.png
-                                |- 1080 TI.png
+                                |- 2060_TI.png
+                                |- 3060_TI.png
+                                |- 1070_TI.png
+                                |- 1080_TI.png
                             |- 2060.jpg
                         |- GTX
                             |- TI
@@ -59,6 +59,9 @@ class FileCRUDAPITest(APITestCase):
                 |- Windows.pdf
                 |- linux.pdf
                 |- Software
+                    |- Operative system
+                    |- linux.pdf
+
         """
         super(FileCRUDAPITest, cls).setUpClass()
         cls.user = get_user_model().objects.create(
@@ -93,16 +96,19 @@ class FileCRUDAPITest(APITestCase):
 
         cls.g_amd = Folder.create_folder_and_assign_to_parent(cls.user, 'AMD', cls.gpu)  # GPU
 
-        cls.f_series_4000 = File.objects.create(parent_folder=cls.g_amd, file=upload_file_temporally('Series 4000.pdf'))  # F AMD
-        cls.f_series_5000 = File.objects.create(parent_folder=cls.g_amd, file=upload_file_temporally('Series 5000.pdf'))  # F AMD
+        cls.f_series_4000 = File.objects.create(parent_folder=cls.g_amd, file=upload_file_temporally('Series_4000.pdf'))  # F AMD
+        cls.f_series_5000 = File.objects.create(parent_folder=cls.g_amd, file=upload_file_temporally('Series_5000.pdf'))  # F AMD
 
         cls.rtx = Folder.create_folder_and_assign_to_parent(cls.user, 'RTX', cls.gpu)  # GPU
+
+        cls.f_2060 = File.objects.create(parent_folder=cls.rtx, file=upload_file_temporally('2060.jpg'))  # F TI
+
         cls.ti_rtx = Folder.create_folder_and_assign_to_parent(cls.user, 'TI', cls.rtx)  # RTX
 
-        cls.f_1070_TI = File.objects.create(parent_folder=cls.ti_rtx, file=upload_file_temporally('1070 TI.png'))  # F TI
-        cls.f_1080_TI = File.objects.create(parent_folder=cls.ti_rtx, file=upload_file_temporally('1080 TI.png'))  # F TI
-        cls.f_2060_TI = File.objects.create(parent_folder=cls.ti_rtx, file=upload_file_temporally('2060 TI.png'))  # F TI
-        cls.f_3060_TI = File.objects.create(parent_folder=cls.ti_rtx, file=upload_file_temporally('3060 TI.png'))  # F TI
+        cls.f_1070_TI = File.objects.create(parent_folder=cls.ti_rtx, file=upload_file_temporally('1070_TI.png'))  # F TI
+        cls.f_1080_TI = File.objects.create(parent_folder=cls.ti_rtx, file=upload_file_temporally('1080_TI.png'))  # F TI
+        cls.f_2060_TI = File.objects.create(parent_folder=cls.ti_rtx, file=upload_file_temporally('2060_TI.png'))  # F TI
+        cls.f_3060_TI = File.objects.create(parent_folder=cls.ti_rtx, file=upload_file_temporally('3060_TI.png'))  # F TI
 
         cls.gtx = Folder.create_folder_and_assign_to_parent(cls.user, 'GTX', cls.gpu)  # GPU
         cls.ti_gtx = Folder.create_folder_and_assign_to_parent(cls.user, 'TI', cls.gtx)  # GTX
@@ -124,10 +130,11 @@ class FileCRUDAPITest(APITestCase):
             file=upload_file_temporally('Headphones.png')
         )  # F Peripherals
 
-        cls.software = Folder.create_folder_and_assign_to_parent(cls.user, 'Software', cls.hardware) # ROOT
+        cls.software = Folder.create_folder_and_assign_to_parent(cls.user, 'Software', cls.hardware)  # ROOT
 
         cls.f_s_linux = File.objects.create(parent_folder=cls.software, file=upload_file_temporally('linux.pdf'))  # F Software
 
+        cls.ops = Folder.create_folder_and_assign_to_parent(cls.user, 'Operative system', cls.software)  # Software
 
     @classmethod
     def tearDownClass(cls):

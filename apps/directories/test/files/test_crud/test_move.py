@@ -20,7 +20,7 @@ class FileMoveTest(FileCRUDAPITest):
 
         payload = {
             'parent_folder': self.software.pk,
-            'files_to_move': [self.f_windows.pk , self.f_linux.pk]
+            'files_to_move': [self.f_windows.pk, self.f_linux.pk]
         }
 
         url_move_folder = reverse(URL_MOVE_FILE)
@@ -41,7 +41,7 @@ class FileMoveTest(FileCRUDAPITest):
         """ Testing the validation of required parent_folder field """
 
         payload = {
-            'files_to_move': [self.f_windows.pk , self.f_linux.pk]
+            'files_to_move': [self.f_windows.pk, self.f_linux.pk]
         }
 
         url_move_folder = reverse(URL_MOVE_FILE)
@@ -117,226 +117,129 @@ class FileMoveTest(FileCRUDAPITest):
 
         self.assertEqual(response.status_code, status.HTTP_412_PRECONDITION_FAILED)
 
-    # def test_09_move_folder_without_children(self):
-    #     """ Testing to move a folder without children to another folder
-    #         new structure:
-    #             ...
-    #             |- Storage
-    #                 |- HDD
-    #                 |- SSD
-    #             ...
-    #             |- Peripherals
-    #                 |- Keyboard
-    #                 |- Mouse
-    #                 |- Headphones
-    #                 |- USB
-    #     """
+    def test_07_move_files_from_leaf_folder(self):
+        """ Testing to move many files from leaf folder
+            new structure:
+                ...
+                |- Software
+                    |- Operative system
+                        |- Windows.pdf
+                        |- linux.pdf
+                    ...
+        """
 
-    #     payload = {
-    #         'folders_to_move': [self.usb.pk],
-    #         'new_parent_folder': self.peripherals.pk
-    #     }
+        payload = {
+            'parent_folder': self.ops.pk,
+            'files_to_move': [self.f_windows.pk, self.f_linux.pk]
+        }
 
-    #     url_move_folder = reverse(URL_MOVE_FILE)
+        url_move_folder = reverse(URL_MOVE_FILE)
 
-    #     self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
-    #     response = self.client.post(url_move_folder, payload)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        response = self.client.patch(url_move_folder, payload)
 
-    #     new_parent_folder = Folder.get_by_id(self.peripherals.pk)
-    #     folder_usb_moved = Folder.get_by_id(self.usb.pk)
-    #     media_path = f'{settings.MEDIA_ROOT_TEST}{new_parent_folder.get_path_folder()}/{folder_usb_moved.name}'
+        new_parent_folder = Folder.get_by_id(self.ops.pk)
+        file_linux_move = File.get_by_id(self.f_linux.pk)
+        file_windows_move = File.get_by_id(self.f_windows.pk)
+        media_linux_path = f'{settings.MEDIA_ROOT_TEST}{new_parent_folder.get_path_folder()}/{file_linux_move.get_full_name()}'
+        media_windows_path = f'{settings.MEDIA_ROOT_TEST}{new_parent_folder.get_path_folder()}/{file_windows_move.get_full_name()}'
 
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     # Validation of change path in database
-    #     self.assertEqual(folder_usb_moved.get_parent().name, new_parent_folder.name)
-    #     self.assertEqual(folder_usb_moved.get_path_parent_folder(), new_parent_folder.get_path_folder())
-    #     # Validation of changes in inheritance database
-    #     self.assertTrue(folder_usb_moved.is_child_of(new_parent_folder))
-    #     # Validation of folders move in media folder
-    #     self.assertTrue(os.path.exists(media_path))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Validation of change path in database
+        self.assertTrue(new_parent_folder.is_inside_folder(file_linux_move.pk))
+        self.assertTrue(new_parent_folder.is_inside_folder(file_windows_move.pk))
+        # Validation of folders move in media folder
+        self.assertTrue(os.path.exists(media_linux_path))
+        self.assertTrue(os.path.exists(media_windows_path))
 
-    # def test_10_move_many_folder_without_children(self):
-    #     """ Testing to move many folder without children to another folder
-    #         new structure:
-    #             ...
-    #             |- RTX
-    #                 |- TI
-    #                     |- 2060 TI
-    #                     |- 3070 TI
-    #             |- GTX
-    #                 |- TI
-    #                     |- 1070 TI
-    #                     |- 1080 TI
-    #             ...
-    #     """
+    def test_08_move_many_files_of_parent_folder(self):
+        """ Testing to move many files from parent folder
+            new structure:
+                ...
+                |- GTX
+                    |- TI
+                        |- 1070 TI.png
+                        |- 1080 TI.png
+                ...
+        """
 
-    #     payload = {
-    #         'folders_to_move': [self.n_gpu_1070_ti.pk,
-    #                             self.n_gpu_1080_ti.pk],
-    #         'new_parent_folder': self.ti_gtx.pk
-    #     }
+        payload = {
+            'parent_folder': self.ti_gtx.pk,
+            'files_to_move': [self.f_1070_TI.pk, self.f_1080_TI.pk]
+        }
 
-    #     url_move_folder = reverse(URL_MOVE_FILE)
+        url_move_folder = reverse(URL_MOVE_FILE)
 
-    #     self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
-    #     response = self.client.post(url_move_folder, payload)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        response = self.client.patch(url_move_folder, payload)
 
-    #     new_parent_folder = Folder.get_by_id(self.ti_gtx.pk)
-    #     folder_1070_moved = Folder.get_by_id(self.n_gpu_1070_ti.pk)
-    #     folder_1080_moved = Folder.get_by_id(self.n_gpu_1080_ti.pk)
-    #     media_path_1070 = f'{settings.MEDIA_ROOT_TEST}{new_parent_folder.get_path_folder()}/{folder_1070_moved.name}'
-    #     media_path_1080 = f'{settings.MEDIA_ROOT_TEST}{new_parent_folder.get_path_folder()}/{folder_1080_moved.name}'
+        new_parent_folder = Folder.get_by_id(self.ti_gtx.pk)
+        file_1070_moved = File.get_by_id(self.f_1070_TI.pk)
+        file_1080_moved = File.get_by_id(self.f_1080_TI.pk)
+        media_path_1070 = f'{settings.MEDIA_ROOT_TEST}{new_parent_folder.get_path_folder()}/{file_1070_moved.get_full_name()}'
+        media_path_1080 = f'{settings.MEDIA_ROOT_TEST}{new_parent_folder.get_path_folder()}/{file_1080_moved.get_full_name()}'
 
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     # Validation of change path in database
-    #     self.assertEqual(folder_1070_moved.get_parent().name, new_parent_folder.name)
-    #     self.assertEqual(folder_1070_moved.get_path_parent_folder(), new_parent_folder.get_path_folder())
-    #     self.assertEqual(folder_1080_moved.get_parent().name, new_parent_folder.name)
-    #     self.assertEqual(folder_1080_moved.get_path_parent_folder(), new_parent_folder.get_path_folder())
-    #     # Validation of changes in inheritance database
-    #     self.assertTrue(folder_1070_moved.is_child_of(new_parent_folder))
-    #     self.assertTrue(folder_1080_moved.is_child_of(new_parent_folder))
-    #     # Validation of folders move in media folder
-    #     self.assertTrue(os.path.exists(media_path_1070))
-    #     self.assertTrue(os.path.exists(media_path_1080))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Validation of change path in database
+        self.assertTrue(new_parent_folder.is_inside_folder(file_1070_moved.pk))
+        self.assertTrue(new_parent_folder.is_inside_folder(file_1080_moved.pk))
+        # Validation of folders move in media folder
+        self.assertTrue(os.path.exists(media_path_1070))
+        self.assertTrue(os.path.exists(media_path_1080))
 
-    # def test_11_move_folder_with_children(self):
-    #     """ Testing to move a folder with children to another folder
-    #         new structure:
-    #             ...
-    #             |- Budget
-    #                 |- Peripherals
-    #                     |- Keyboard
-    #                     |- Mouse
-    #                     |- Headphones
-    #     """
+    def test_09_move_many_files_of_different_folders(self):
+        """ Testing to move many files from parent folder
+            new structure:
+                ...
+                |- NVIDIA
+                    |- Series_1000.pdf
+                    |- Series_2000.pdf
+                    |- 2060 TI.png
+                    |- 3070 TI.png
+                    |- 1070 TI.png
+                    |- 1080 TI.png
+                    |- 2060.jpg
+                    |- 1030.pdf
+                ...
+                |- RTX
+                    |- TI
+                |- GTX
+                    |- TI
+                ...
+        """
 
-    #     payload = {
-    #         'folders_to_move': [self.peripherals.pk],
-    #         'new_parent_folder': self.budget.pk
+        payload = {
+            'parent_folder': self.nvidia.pk,
+            'files_to_move': [self.f_2060.pk,
+                            self.f_2060_TI.pk,
+                            self.f_3060_TI.pk,
+                            self.f_1030.pk]
+        }
 
-    #     }
+        url_move_folder = reverse(URL_MOVE_FILE)
 
-    #     url_move_folder = reverse(URL_MOVE_FILE)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        response = self.client.patch(url_move_folder, payload)
 
-    #     self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
-    #     response = self.client.post(url_move_folder, payload)
+        new_parent_folder = Folder.get_by_id(self.nvidia.pk)
+        file_2060_moved = File.get_by_id(self.f_2060.pk)
+        file_2060_ti_moved = File.get_by_id(self.f_2060_TI.pk)
+        file_3060_moved = File.get_by_id(self.f_3060_TI.pk)
+        file_1030_moved = File.get_by_id(self.f_1030.pk)
 
-    #     new_parent_folder = Folder.get_by_id(self.budget.pk)
-    #     folder_peripherals_moved = Folder.get_by_id(self.peripherals.pk)
-    #     folder_keyboard_moved = Folder.get_by_id(self.keyboard.pk)
-    #     folder_mouse_moved = Folder.get_by_id(self.mouse.pk)
-    #     folder_headphones_moved = Folder.get_by_id(self.headphones.pk)
+        media_path_2060 = f'{settings.MEDIA_ROOT_TEST}{new_parent_folder.get_path_folder()}/{file_2060_moved.get_full_name()}'
+        media_path_2060_ti = f'{settings.MEDIA_ROOT_TEST}{new_parent_folder.get_path_folder()}/{file_2060_ti_moved.get_full_name()}'
+        media_path_3060 = f'{settings.MEDIA_ROOT_TEST}{new_parent_folder.get_path_folder()}/{file_3060_moved.get_full_name()}'
+        media_path_1030 = f'{settings.MEDIA_ROOT_TEST}{new_parent_folder.get_path_folder()}/{file_1030_moved.get_full_name()}'
 
-    #     media_path_new_parent_folder = f'{settings.MEDIA_ROOT_TEST}{new_parent_folder.get_path_folder()}'
-    #     media_path_peripherals_moved = f'{media_path_new_parent_folder}/{folder_peripherals_moved.name}'
-    #     media_path_keyboard = f'{media_path_peripherals_moved}/{folder_keyboard_moved.name}'
-    #     media_path_mouse = f'{media_path_peripherals_moved}/{folder_mouse_moved.name}'
-    #     media_path_headphones = f'{media_path_peripherals_moved}/{folder_headphones_moved.name}'
-
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     # Validation of change path in database
-    #     self.assertEqual(folder_peripherals_moved.get_parent().name, new_parent_folder.name)
-    #     self.assertEqual(folder_peripherals_moved.get_path_parent_folder(), new_parent_folder.get_path_folder())
-    #     # Validation of changes in inheritance database
-    #     self.assertTrue(folder_peripherals_moved.is_child_of(new_parent_folder))
-    #     self.assertTrue(folder_keyboard_moved.is_descendant_of(new_parent_folder))
-    #     self.assertTrue(folder_mouse_moved.is_descendant_of(new_parent_folder))
-    #     self.assertTrue(folder_headphones_moved.is_descendant_of(new_parent_folder))
-    #     # Validation of folders move in media folder
-    #     self.assertTrue(os.path.exists(media_path_peripherals_moved))
-    #     self.assertTrue(os.path.exists(media_path_keyboard))
-    #     self.assertTrue(os.path.exists(media_path_mouse))
-    #     self.assertTrue(os.path.exists(media_path_headphones))
-
-    # def test_12_move_many_folder_with_children(self):
-    #     """ Testing to move many folder with children to another folder
-    #         new structure:
-    #             ...
-    #             |- NVIDIA
-    #                 |- Series 1000
-    #                 |- Series 2000
-    #                 |- Series 3000
-    #                 |- Series 4000
-    #                 |- RTX
-    #                     |- TI
-    #                         |- 2060 TI
-    #                         |- 3070 TI
-    #                     |- 2060
-    #                     |- 2070
-    #                     |- 2080
-    #                     |- 3080
-    #                     |- 3060
-    #                     |- 3070
-    #                 |- GTX
-    #                     |- TI
-    #                         |- 1070 TI
-    #                         |- 1080 TI
-    #                     |- 1030
-    #                     |- 1650
-    #                     |- 1080
-    #                     |- 1060
-    #                     |- 3090
-    #             ...
-    #     """
-
-    #     payload = {
-    #         'folders_to_move': [self.rtx.pk,
-    #                             self.gtx.pk],
-    #         'new_parent_folder': self.nvidia.pk
-
-    #     }
-
-    #     url_move_folder = reverse(URL_MOVE_FILE)
-
-    #     self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
-    #     response = self.client.post(url_move_folder, payload)
-
-    #     new_parent_folder = Folder.get_by_id(self.nvidia.pk)
-    #     folder_rtx_moved = Folder.get_by_id(self.rtx.pk)
-    #     folder_gtx_moved = Folder.get_by_id(self.gtx.pk)
-
-    #     folder_rtx_ti = Folder.get_by_id(self.ti_rtx.pk)
-    #     folder_gpu_rtx_2080_moved = Folder.get_by_id(self.n_gpu_2080.pk)
-    #     folder_gpu_rtx_3070_ti_moved = Folder.get_by_id(self.n_gpu_3070_ti.pk)
-
-    #     folder_gtx_ti = Folder.get_by_id(self.ti_gtx.pk)
-    #     folder_gpu_gtx_1070_ti_moved = Folder.get_by_id(self.n_gpu_1070_ti.pk)
-    #     folder_gpu_gtx_1650_moved = Folder.get_by_id(self.n_gpu_1650.pk)
-
-    #     media_path_new_parent_folder = f'{settings.MEDIA_ROOT_TEST}{new_parent_folder.get_path_folder()}'
-
-    #     media_path_rtx_moved = f'{media_path_new_parent_folder}/{folder_rtx_moved.name}'
-    #     media_path_rtx_2080_moved = f'{media_path_rtx_moved}/{folder_gpu_rtx_2080_moved.name}'
-    #     media_path_rtx_it_moved = f'{media_path_rtx_moved}/{folder_rtx_ti.name}'
-    #     media_path_rtx_3070_it_moved = f'{media_path_rtx_it_moved}/{folder_gpu_rtx_3070_ti_moved.name}'
-
-    #     media_path_gtx_moved = f'{media_path_new_parent_folder}/{folder_gtx_moved.name}'
-    #     media_path_gtx_1650_moved = f'{media_path_gtx_moved}/{folder_gpu_gtx_1650_moved.name}'
-    #     media_path_gtx_it_moved = f'{media_path_gtx_moved}/{folder_gtx_ti.name}'
-    #     media_path_gtx_1070_ti_moved = f'{media_path_gtx_it_moved}/{folder_gpu_gtx_1070_ti_moved.name}'
-
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     # Validation of change path in database
-    #     self.assertEqual(folder_rtx_moved.get_parent().name, new_parent_folder.name)
-    #     self.assertEqual(folder_rtx_moved.get_path_parent_folder(), new_parent_folder.get_path_folder())
-    #     self.assertEqual(folder_gtx_moved.get_parent().name, new_parent_folder.name)
-    #     self.assertEqual(folder_gtx_moved.get_path_parent_folder(), new_parent_folder.get_path_folder())
-    #     # Validation of changes in inheritance database
-    #     self.assertTrue(folder_rtx_moved.is_child_of(new_parent_folder))
-    #     self.assertTrue(folder_gtx_moved.is_child_of(new_parent_folder))
-    #     self.assertTrue(folder_rtx_ti.is_descendant_of(new_parent_folder))
-    #     self.assertTrue(folder_gpu_rtx_2080_moved.is_descendant_of(new_parent_folder))
-    #     self.assertTrue(folder_gpu_rtx_3070_ti_moved.is_descendant_of(new_parent_folder))
-    #     self.assertTrue(folder_gtx_ti.is_descendant_of(new_parent_folder))
-    #     self.assertTrue(folder_gpu_gtx_1070_ti_moved.is_descendant_of(new_parent_folder))
-    #     self.assertTrue(folder_gpu_gtx_1650_moved.is_descendant_of(new_parent_folder))
-    #     # Validation of folders move in media folder
-    #     self.assertTrue(os.path.exists(media_path_rtx_moved))
-    #     self.assertTrue(os.path.exists(media_path_rtx_2080_moved))
-    #     self.assertTrue(os.path.exists(media_path_rtx_it_moved))
-    #     self.assertTrue(os.path.exists(media_path_rtx_3070_it_moved))
-    #     self.assertTrue(os.path.exists(media_path_gtx_moved))
-    #     self.assertTrue(os.path.exists(media_path_gtx_1650_moved))
-    #     self.assertTrue(os.path.exists(media_path_gtx_it_moved))
-    #     self.assertTrue(os.path.exists(media_path_gtx_1070_ti_moved))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Validation of change path in database
+        self.assertTrue(new_parent_folder.is_inside_folder(file_2060_moved.pk))
+        self.assertTrue(new_parent_folder.is_inside_folder(file_2060_ti_moved.pk))
+        self.assertTrue(new_parent_folder.is_inside_folder(file_3060_moved.pk))
+        self.assertTrue(new_parent_folder.is_inside_folder(file_1030_moved.pk))
+        # Validation of folders move in media folder
+        self.assertTrue(os.path.exists(media_path_2060))
+        self.assertTrue(os.path.exists(media_path_2060_ti))
+        self.assertTrue(os.path.exists(media_path_3060))
+        self.assertTrue(os.path.exists(media_path_1030))
