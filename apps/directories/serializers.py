@@ -40,21 +40,23 @@ class FileSerializer(serializers.ModelSerializer):
     def validate(self, data):
 
         # new_parent_folder = data.get('parent_folder', None)
-        complete_name = f'{data["name"]}.{self.instance.details.type}'
-        # if new_parent_folder is not None and new_parent_folder != self.instance.parent_folder:
+        name = data.get("name")
+        if name is not None:
+            complete_name = f'{data["name"]}.{self.instance.details.type}'
+            # if new_parent_folder is not None and new_parent_folder != self.instance.parent_folder:
 
-        #     duplicate = new_parent_folder.get_all_files().filter(name=complete_name).exists()
-        #     if duplicate:
-        #         raise ValidationError("There cannot be two files with the same name")
+            #     duplicate = new_parent_folder.get_all_files().filter(name=complete_name).exists()
+            #     if duplicate:
+            #         raise ValidationError("There cannot be two files with the same name")
 
-        if self.instance.get_full_name() != complete_name:
-            duplicate = self.instance.parent_folder.get_all_files().filter(name=complete_name).exists()
+            if self.instance.get_full_name() != complete_name:
+                duplicate = self.instance.parent_folder.get_all_files().filter(name=complete_name).exists()
 
-            if duplicate:
-                raise ValidationError("There cannot be two files with the same name")
+                if duplicate:
+                    raise ValidationError("There cannot be two files with the same name")
 
         return data
 
     class Meta:
         model = File
-        fields = ['pk', 'name', 'file']
+        fields = ['pk', 'name', 'file', 'parent_folder']

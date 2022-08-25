@@ -315,7 +315,7 @@ class Folder(MP_Node, BaseProjectModel):
         """
         return set(self.get_all_files().values_list('name', flat=True))
 
-    def is_inside_folder(self, id_file: int) -> bool:
+    def is_file_child(self, id_file: int) -> bool:
         """ Return if the file is inside th folder
 
             Parameters:

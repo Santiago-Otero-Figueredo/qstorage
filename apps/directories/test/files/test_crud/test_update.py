@@ -83,7 +83,7 @@ class FolderUpdateTest(FileCRUDAPITest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Validation of change path in database
         self.assertEqual(update_file.name, 'linux_rename.pdf')
-        self.assertTrue(self.root_folder.is_inside_folder(update_file.pk))
+        self.assertTrue(self.root_folder.is_file_child(update_file.pk))
         # Validation of folders move in media folder
         self.assertTrue(os.path.exists(media_path_new_file))
 
@@ -115,6 +115,6 @@ class FolderUpdateTest(FileCRUDAPITest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Validation of change path in database
         self.assertEqual(update_file.name, 'Series_1000_old_gen.pdf')
-        self.assertTrue(self.nvidia.is_inside_folder(update_file.pk))
+        self.assertTrue(self.nvidia.is_file_child(update_file.pk))
         # Validation of folders move in media folder
         self.assertTrue(os.path.exists(media_path_new_file))

@@ -50,6 +50,20 @@ class File(BaseProjectModel):
         return File.objects.filter(parent_folder__owner_user__pk=user.pk)
 
     @staticmethod
+    def get_all_files_by_user_and_name(user: 'User', name: str) -> QuerySet['File']:
+        """ Return all the files in all folders of a user received and the name of the file
+
+            Parameter:
+                user(User): user used to make the search
+                name(str): name of the file
+
+            Return
+                filer(QuerySet['File']): All files of the user
+        """
+
+        return File.objects.filter(parent_folder__owner_user__pk=user.pk, name=name)
+
+    @staticmethod
     def get_all_files_by_user_and_list_ids(user: 'User', list_ids: List['int']) -> QuerySet['File']:
         """ Return all the files in all folders of a user received and a list of ids
 
@@ -120,8 +134,7 @@ class File(BaseProjectModel):
                 file.parent_folder = new_parent_folder
                 file.save()
             return True
-        except Exception as e:
-            print(e)
+        except Exception:
             return False
 
     @staticmethod
