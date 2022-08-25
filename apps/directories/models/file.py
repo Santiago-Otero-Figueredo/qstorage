@@ -124,6 +124,65 @@ class File(BaseProjectModel):
             print(e)
             return False
 
+    @staticmethod
+    def disabled_many_files(files_id: List[int]) -> bool:
+        """
+            Disable many files and return if the result of the action.
+
+            Parameters:
+                files_id(Folder): The list of ids files to be moved to the recicle bin
+
+            Return:
+                result(bool): True if success or False otherwise
+
+        """
+        try:
+            files_to_disable = File.get_elements_by_list_id(files_id)
+            files_to_disable.update(is_active=False)
+            return True
+        except Exception:
+            return False
+
+    @staticmethod
+    def recover_many_files(files_id: List[int]) -> bool:
+        """
+            Activate many files and return if the result of the action.
+
+            Parameters:
+                files_id(Folder): The list of ids files to be moved to the recicle bin
+
+            Return:
+                result(bool): True if success or False otherwise
+
+        """
+        try:
+            files_to_disable = File.get_elements_by_list_id(files_id)
+            files_to_disable.update(is_active=True)
+            return True
+        except Exception:
+            return False
+
+    @staticmethod
+    def delete_many_files(files_id: List[int]) -> bool:
+        """
+            Delete a Files return if the result of the action.
+
+            Parameters:
+                files_id(List[int]): The list of ids files to be delete
+
+            Return:
+                result(bool): True if success or False otherwise
+        """
+
+        try:
+            files_to_disable = File.get_elements_by_list_id(files_id)
+            for file in files_to_disable:
+                file_manager = FileManager(actual_file=file)
+                file_manager._delete_folder()
+            return True
+        except Exception:
+            return False
+
     def get_full_name(self) -> str:
         """ Return the name and the extension of the file """
         if '.' not in self.name:

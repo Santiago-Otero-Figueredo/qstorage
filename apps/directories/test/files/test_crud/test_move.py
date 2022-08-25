@@ -15,7 +15,7 @@ URL_MOVE_FILE = 'directories:files-move-files'
 @override_settings(MEDIA_ROOT=settings.MEDIA_ROOT_TEST)
 class FileMoveTest(FileCRUDAPITest):
 
-    def test_01_move_folder_method_not_allowed(self):
+    def test_01_move_file_method_not_allowed(self):
         """ Testing not allow methods in function """
 
         payload = {
@@ -37,7 +37,7 @@ class FileMoveTest(FileCRUDAPITest):
         self.assertEqual(response_3.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         self.assertEqual(response_4.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    def test_02_move_folder_missing_field(self):
+    def test_02_move_file_missing_field(self):
         """ Testing the validation of required parent_folder field """
 
         payload = {
@@ -52,7 +52,7 @@ class FileMoveTest(FileCRUDAPITest):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_03_move_folder_missing_field(self):
+    def test_03_move_file_missing_field(self):
         """ Testing the validation of required files_to_move field """
 
         payload = {
@@ -67,7 +67,7 @@ class FileMoveTest(FileCRUDAPITest):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_04_move_folder_not_exists_parent_folder(self):
+    def test_04_move_file_not_exists_parent_folder(self):
         """ Testing the validation of required new parent folder exists """
 
         payload = {
@@ -82,7 +82,7 @@ class FileMoveTest(FileCRUDAPITest):
         response = self.client.patch(url_move_folder, payload)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_05_move_folder_not_actual_parent_folder_different_of_new_parent_folder(self):
+    def test_05_move_file_not_actual_parent_folder_different_of_new_parent_folder(self):
         """ Testing the validation of precondition:
          new parent folder must be different of actual parent folder """
 
@@ -99,7 +99,7 @@ class FileMoveTest(FileCRUDAPITest):
 
         self.assertEqual(response.status_code, status.HTTP_412_PRECONDITION_FAILED)
 
-    def test_06_move_folder_not_different_name_folder_children(self):
+    def test_06_move_file_not_different_name_file_children(self):
         """ Testing the validation of precondition:
          the actual files must to have a different name of the children files folders
          in the new parent folder """
@@ -165,7 +165,7 @@ class FileMoveTest(FileCRUDAPITest):
 
         payload = {
             'parent_folder': self.ti_gtx.pk,
-            'files_to_move': [self.f_1070_TI.pk, self.f_1080_TI.pk]
+            'files_to_move': [self.f_1070_ti.pk, self.f_1080_ti.pk]
         }
 
         url_move_folder = reverse(URL_MOVE_FILE)
@@ -174,8 +174,8 @@ class FileMoveTest(FileCRUDAPITest):
         response = self.client.patch(url_move_folder, payload)
 
         new_parent_folder = Folder.get_by_id(self.ti_gtx.pk)
-        file_1070_moved = File.get_by_id(self.f_1070_TI.pk)
-        file_1080_moved = File.get_by_id(self.f_1080_TI.pk)
+        file_1070_moved = File.get_by_id(self.f_1070_ti.pk)
+        file_1080_moved = File.get_by_id(self.f_1080_ti.pk)
         media_path_1070 = f'{settings.MEDIA_ROOT_TEST}{new_parent_folder.get_path_folder()}/{file_1070_moved.get_full_name()}'
         media_path_1080 = f'{settings.MEDIA_ROOT_TEST}{new_parent_folder.get_path_folder()}/{file_1080_moved.get_full_name()}'
 
@@ -211,8 +211,8 @@ class FileMoveTest(FileCRUDAPITest):
         payload = {
             'parent_folder': self.nvidia.pk,
             'files_to_move': [self.f_2060.pk,
-                            self.f_2060_TI.pk,
-                            self.f_3060_TI.pk,
+                            self.f_2060_ti.pk,
+                            self.f_3060_ti.pk,
                             self.f_1030.pk]
         }
 
@@ -223,8 +223,8 @@ class FileMoveTest(FileCRUDAPITest):
 
         new_parent_folder = Folder.get_by_id(self.nvidia.pk)
         file_2060_moved = File.get_by_id(self.f_2060.pk)
-        file_2060_ti_moved = File.get_by_id(self.f_2060_TI.pk)
-        file_3060_moved = File.get_by_id(self.f_3060_TI.pk)
+        file_2060_ti_moved = File.get_by_id(self.f_2060_ti.pk)
+        file_3060_moved = File.get_by_id(self.f_3060_ti.pk)
         file_1030_moved = File.get_by_id(self.f_1030.pk)
 
         media_path_2060 = f'{settings.MEDIA_ROOT_TEST}{new_parent_folder.get_path_folder()}/{file_2060_moved.get_full_name()}'

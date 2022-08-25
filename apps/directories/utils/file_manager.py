@@ -83,5 +83,6 @@ class FileManager():
             self._update_file_name()
 
     def _delete_folder(self) -> None:
-
-        pass
+        path_folder = self.actual_file.get_full_path()
+        os.remove(path_folder)
+        self.actual_file.delete()

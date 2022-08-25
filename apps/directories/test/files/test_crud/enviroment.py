@@ -105,10 +105,10 @@ class FileCRUDAPITest(APITestCase):
 
         cls.ti_rtx = Folder.create_folder_and_assign_to_parent(cls.user, 'TI', cls.rtx)  # RTX
 
-        cls.f_1070_TI = File.objects.create(parent_folder=cls.ti_rtx, file=upload_file_temporally('1070_TI.png'))  # F TI
-        cls.f_1080_TI = File.objects.create(parent_folder=cls.ti_rtx, file=upload_file_temporally('1080_TI.png'))  # F TI
-        cls.f_2060_TI = File.objects.create(parent_folder=cls.ti_rtx, file=upload_file_temporally('2060_TI.png'))  # F TI
-        cls.f_3060_TI = File.objects.create(parent_folder=cls.ti_rtx, file=upload_file_temporally('3060_TI.png'))  # F TI
+        cls.f_1070_ti = File.objects.create(parent_folder=cls.ti_rtx, file=upload_file_temporally('1070_TI.png'))  # F TI
+        cls.f_1080_ti = File.objects.create(parent_folder=cls.ti_rtx, file=upload_file_temporally('1080_TI.png'))  # F TI
+        cls.f_2060_ti = File.objects.create(parent_folder=cls.ti_rtx, file=upload_file_temporally('2060_TI.png'))  # F TI
+        cls.f_3060_ti = File.objects.create(parent_folder=cls.ti_rtx, file=upload_file_temporally('3060_TI.png'))  # F TI
 
         cls.gtx = Folder.create_folder_and_assign_to_parent(cls.user, 'GTX', cls.gpu)  # GPU
         cls.ti_gtx = Folder.create_folder_and_assign_to_parent(cls.user, 'TI', cls.gtx)  # GTX

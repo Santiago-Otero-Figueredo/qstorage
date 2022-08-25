@@ -15,7 +15,7 @@ URL_DELETE_FOLDER = 'directories:folders-delete-folder'
 @override_settings(MEDIA_ROOT=settings.MEDIA_ROOT_TEST)
 class FolderRecicleBinTest(FolderCRUDAPITest):
 
-    def test_01_move_recicle_bin_folder_method_not_allowed(self):
+    def test_01_delete_folder_method_not_allowed(self):
         """ Testing not allow methods in function """
 
         payload = {
@@ -35,7 +35,7 @@ class FolderRecicleBinTest(FolderCRUDAPITest):
         self.assertEqual(response_3.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         self.assertEqual(response_4.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    def test_02_move_recicle_bin_folder_not_exists(self):
+    def test_02_delete_folder_not_exists(self):
         """ Testing no list folder if does not exists """
 
         payload = {
@@ -65,7 +65,7 @@ class FolderRecicleBinTest(FolderCRUDAPITest):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_04_move_folder_missing_field(self):
+    def test_04_delete_folder_missing_field(self):
         """ Testing the validation of required folders_to_delete field """
 
         payload = {}
