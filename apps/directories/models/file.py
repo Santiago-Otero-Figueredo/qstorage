@@ -20,6 +20,11 @@ def get_upload_path(instance, filename):
     return os.path.join(f'{instance.parent_folder.get_path_folder()}/{filename}')
 
 
+class Detail(BaseProjectModel):
+    type = models.CharField(max_length=30, default='NN')
+    size = models.PositiveBigIntegerField(default=0)
+
+
 class File(BaseProjectModel):
     parent_folder = models.ForeignKey(
         Folder,
@@ -28,7 +33,7 @@ class File(BaseProjectModel):
         on_delete=models.CASCADE
     )
     details = models.OneToOneField(
-        'directories.Detail',
+        Detail,
         verbose_name='Details file',
         related_name='file_details',
         on_delete=models.CASCADE,
@@ -234,8 +239,3 @@ def pre_save_assign_root_folder(sender, instance, update_fields, *args, **kwargs
         instance.details = detail
     else:
         instance.name = instance.get_full_name()
-
-
-class Detail(BaseProjectModel):
-    type = models.CharField(max_length=30, default='NN')
-    size = models.PositiveBigIntegerField(default=0)

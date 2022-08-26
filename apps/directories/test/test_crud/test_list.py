@@ -12,7 +12,7 @@ URL_LIST_CHILDREN = 'directories:folders-children-folders'
 @override_settings(MEDIA_ROOT=settings.MEDIA_ROOT_TEST)
 class FolderListTest(FolderCRUDAPITest):
 
-    def test_01_list_folder_method_not_allowed(self):
+    def test_01_list_file_method_not_allowed(self):
         """ Testing not allow methods in function """
 
         url_list_folder = reverse(URL_LIST_CHILDREN, kwargs={'pk': self.root_folder.pk})

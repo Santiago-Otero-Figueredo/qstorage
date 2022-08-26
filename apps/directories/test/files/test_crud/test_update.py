@@ -15,7 +15,7 @@ URL_DETAIL_FILE = 'directories:files-detail'
 @override_settings(MEDIA_ROOT=settings.MEDIA_ROOT_TEST)
 class FolderUpdateTest(FileCRUDAPITest):
 
-    def test_01_update_folder_method_not_allowed(self):
+    def test_01_update_file_method_not_allowed(self):
         """ Testing not allow methods in function """
 
         payload = {
@@ -30,7 +30,7 @@ class FolderUpdateTest(FileCRUDAPITest):
 
         self.assertEqual(response_1.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    def test_02_update_folder_not_exists(self):
+    def test_02_update_file_not_exists(self):
         """ Testing not update file if does not exists """
 
         payload = {

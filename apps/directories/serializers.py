@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import Folder, File
+from .models import Folder, File, Detail
 
 
 class FolderCreateSerializer(serializers.ModelSerializer):
@@ -34,8 +34,17 @@ class FolderCreateSerializer(serializers.ModelSerializer):
         return data
 
 
+class DetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Detail
+        fields = ['type', 'size']
+
+
 class FileSerializer(serializers.ModelSerializer):
     # parent_folder = serializers.PrimaryKeyRelatedField(queryset=Folder.get_all())
+
+    details = DetailSerializer(required=False)
 
     def validate(self, data):
 
@@ -59,4 +68,4 @@ class FileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = File
-        fields = ['pk', 'name', 'file', 'parent_folder']
+        fields = ['pk', 'name', 'file', 'parent_folder', 'details']
