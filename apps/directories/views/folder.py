@@ -51,6 +51,7 @@ class FolderVS(ModelViewSet):
             url_name='move-folder', permission_classes=[IsAuthenticatedOwnerFolderUser])
     def move_folder(self, request):
         """ Move the folder content to another folder """
+        from iteration_utilities import duplicates, unique_everseen
 
         data = dict(request.data)
 
@@ -101,6 +102,22 @@ class FolderVS(ModelViewSet):
             return Response(
                 {'message': 'The new folder to be moved to must be different name of the children folder'},
                 status=status.HTTP_412_PRECONDITION_FAILED
+            )
+
+        # Compare the names of the files in the actual folder parent with the new folder parent and avoid move files with same names
+        list_names = Folder.get_all_name_files_in_folder_group(folders_to_move)
+        duplicated_names = list(unique_everseen(duplicates(list_names)))
+
+        if len(duplicated_names) > 0:
+            return Response(
+                {'message': 'There are files with the same name in the group of folder to move.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if new_parent_folder.get_all_files_name() & set(list_names):
+            return Response(
+                {'message': 'There are files with the same name in the new parent folder to move.'},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
         if Folder.move_many_folder_into_another(folders_to_move, new_parent_folder) is True:

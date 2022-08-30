@@ -146,8 +146,8 @@ class FileMoveTest(FileCRUDAPITest):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Validation of change path in database
-        self.assertTrue(new_parent_folder.is_file_child(file_linux_move.pk))
-        self.assertTrue(new_parent_folder.is_file_child(file_windows_move.pk))
+        self.assertTrue(new_parent_folder.has_this_file(file_linux_move.pk))
+        self.assertTrue(new_parent_folder.has_this_file(file_windows_move.pk))
         # Validation of folders move in media folder
         self.assertTrue(os.path.exists(media_linux_path))
         self.assertTrue(os.path.exists(media_windows_path))
@@ -181,8 +181,8 @@ class FileMoveTest(FileCRUDAPITest):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Validation of change path in database
-        self.assertTrue(new_parent_folder.is_file_child(file_1070_moved.pk))
-        self.assertTrue(new_parent_folder.is_file_child(file_1080_moved.pk))
+        self.assertTrue(new_parent_folder.has_this_file(file_1070_moved.pk))
+        self.assertTrue(new_parent_folder.has_this_file(file_1080_moved.pk))
         # Validation of folders move in media folder
         self.assertTrue(os.path.exists(media_path_1070))
         self.assertTrue(os.path.exists(media_path_1080))
@@ -234,10 +234,10 @@ class FileMoveTest(FileCRUDAPITest):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Validation of change path in database
-        self.assertTrue(new_parent_folder.is_file_child(file_2060_moved.pk))
-        self.assertTrue(new_parent_folder.is_file_child(file_2060_ti_moved.pk))
-        self.assertTrue(new_parent_folder.is_file_child(file_3060_moved.pk))
-        self.assertTrue(new_parent_folder.is_file_child(file_1030_moved.pk))
+        self.assertTrue(new_parent_folder.has_this_file(file_2060_moved.pk))
+        self.assertTrue(new_parent_folder.has_this_file(file_2060_ti_moved.pk))
+        self.assertTrue(new_parent_folder.has_this_file(file_3060_moved.pk))
+        self.assertTrue(new_parent_folder.has_this_file(file_1030_moved.pk))
         # Validation of folders move in media folder
         self.assertTrue(os.path.exists(media_path_2060))
         self.assertTrue(os.path.exists(media_path_2060_ti))

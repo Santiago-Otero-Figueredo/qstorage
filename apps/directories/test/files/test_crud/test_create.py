@@ -73,7 +73,7 @@ class FolderCreateTest(FileCRUDAPITest):
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         # Validation of change path in database
-        self.assertTrue(parent_folder.is_file_child(new_file.pk))
+        self.assertTrue(parent_folder.has_this_file(new_file.pk))
         self.assertTrue(File.get_all_files_by_user_and_name(self.user, 'new_file.pdf').exists())
         # Validation of folders move in media folder
         self.assertTrue(os.path.exists(media_path_new_file))
@@ -99,7 +99,7 @@ class FolderCreateTest(FileCRUDAPITest):
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         # Validation of change path in database
-        self.assertTrue(parent_folder.is_file_child(new_file.pk))
+        self.assertTrue(parent_folder.has_this_file(new_file.pk))
         self.assertTrue(File.get_all_files_by_user_and_name(self.user, 'new_file.pdf').exists())
         # Validation of folders move in media folder
         self.assertTrue(os.path.exists(media_path_new_file))

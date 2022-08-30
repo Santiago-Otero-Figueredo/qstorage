@@ -6,7 +6,7 @@ import os
 import shutil
 
 if TYPE_CHECKING:
-    from ..models import File
+    from ..models import File, Folder
 
 
 class FileManager():
@@ -55,6 +55,14 @@ class FileManager():
         new_rename = paths_processed[1]
 
         self._move_folders(old_rename, new_rename)
+        self.actual_file.file = f'{self.actual_file.parent_folder.get_path_folder()}/{self.actual_file.get_full_name()}'
+
+    def _update_file_paths_by_parent_folders(self, folder: 'Folder'):
+        """Update the path of actual file using a folder object"""
+
+        new_path = folder.get_absolute_path_folder()
+        old_path = self.__get_new_path_folder()
+        self._move_folders(old_path, new_path)
         self.actual_file.file = f'{self.actual_file.parent_folder.get_path_folder()}/{self.actual_file.get_full_name()}'
 
     def _update_file_name(self):

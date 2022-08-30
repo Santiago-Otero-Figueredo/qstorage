@@ -126,10 +126,14 @@ class Folder(MP_Node, BaseProjectModel):
             Return:
                 result(bool): True if success or False otherwise
         """
+        from apps.directories.models import File
+
         try:
             folders_to_move = Folder.get_elements_by_list_id(folders_id)
             for folder in folders_to_move:
                 Folder.move_folder_into_another(folder, new_parent_folder)
+                id_files_in_folder = list(folder.get_all_files().values_list('pk', flat=True))
+                File.move_many_files_into_another_folder(id_files_in_folder, new_parent_folder)
             return True
         except Exception:
             return False
@@ -145,12 +149,15 @@ class Folder(MP_Node, BaseProjectModel):
             Return:
                 result(bool): True if success or False otherwise
         """
+        from apps.directories.models import File
 
         try:
             folders_to_disable = Folder.get_elements_by_list_id(folders_id)
             for folder in folders_to_disable:
                 folder_manager = FolderManager(folder)
                 folder_manager._delete_folder()
+                id_files_in_folder = list(folder.get_all_files().values_list('pk', flat=True))
+                File.delete_many_files(id_files_in_folder)
             return True
         except Exception:
             return False
@@ -186,10 +193,14 @@ class Folder(MP_Node, BaseProjectModel):
                 result(bool): True if success or False otherwise
 
         """
+        from apps.directories.models import File
+
         try:
             folders_to_disable = Folder.get_elements_by_list_id(folders_id)
             for folder in folders_to_disable:
                 folder.disable_folder_and_children()
+                id_files_in_folder = list(folder.get_all_files().values_list('pk', flat=True))
+                File.disabled_many_files(id_files_in_folder)
             return True
         except Exception:
             return False
@@ -206,13 +217,36 @@ class Folder(MP_Node, BaseProjectModel):
                 result(bool): True if success or False otherwise
 
         """
+        from apps.directories.models import File
+
         try:
             folders_to_disable = Folder.get_elements_by_list_id(folders_id)
             for folder in folders_to_disable:
                 folder.activate_folder_and_children()
+                id_files_in_folder = list(folder.get_all_files().values_list('pk', flat=True))
+                File.recover_many_files(id_files_in_folder)
             return True
         except Exception:
             return False
+
+    @staticmethod
+    def get_all_name_files_in_folder_group(list_ids: List[int]) -> List[str]:
+        """
+            Return the name of all files in the group of ids folders
+
+            Parameters:
+                list_ids(List[int]): ids of folder to get the files
+
+            Return:
+                names_files(List[str]): names of all files in th folder
+        """
+
+        folders = Folder.get_elements_by_list_id(list_ids)
+        list_names = []
+        for parent_folder in folders:
+            list_names = list_names + list(parent_folder.get_all_files_name())
+
+        return list_names
 
     def get_ancestors_folder(self) -> List[str]:
         """
@@ -223,6 +257,16 @@ class Folder(MP_Node, BaseProjectModel):
         """
 
         return self.get_ancestors().values_list('name', flat=True)
+
+    def get_children_folder_objects(self) -> QuerySet['Folder']:
+        """
+            Return children folder
+
+            Return:
+                children(QuerySet['Folder']): Queryset of children folders
+        """
+
+        return self.get_children()
 
     def get_children_folder(self) -> Set[str]:
         """
@@ -315,7 +359,7 @@ class Folder(MP_Node, BaseProjectModel):
         """
         return set(self.get_all_files().values_list('name', flat=True))
 
-    def is_file_child(self, id_file: int) -> bool:
+    def has_this_file(self, id_file: int) -> bool:
         """ Return if the file is inside th folder
 
             Parameters:

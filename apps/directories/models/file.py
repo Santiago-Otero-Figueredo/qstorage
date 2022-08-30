@@ -136,7 +136,8 @@ class File(BaseProjectModel):
         try:
             files_to_move = File.get_elements_by_list_id(files_ids)
             for file in files_to_move:
-                file.parent_folder = new_parent_folder
+                file_manager = FileManager(file)
+                file_manager._update_file_paths_by_parent_folders(file.parent_folder)
                 file.save()
             return True
         except Exception:
