@@ -193,16 +193,14 @@ class Folder(MP_Node, BaseProjectModel):
                 result(bool): True if success or False otherwise
 
         """
-        from apps.directories.models import File
 
         try:
             folders_to_disable = Folder.get_elements_by_list_id(folders_id)
             for folder in folders_to_disable:
                 folder.disable_folder_and_children()
-                id_files_in_folder = list(folder.get_all_files().values_list('pk', flat=True))
-                File.disabled_many_files(id_files_in_folder)
             return True
-        except Exception:
+        except Exception as e:
+            print(e)
             return False
 
     @staticmethod
@@ -217,14 +215,11 @@ class Folder(MP_Node, BaseProjectModel):
                 result(bool): True if success or False otherwise
 
         """
-        from apps.directories.models import File
 
         try:
             folders_to_disable = Folder.get_elements_by_list_id(folders_id)
             for folder in folders_to_disable:
                 folder.activate_folder_and_children()
-                id_files_in_folder = list(folder.get_all_files().values_list('pk', flat=True))
-                File.recover_many_files(id_files_in_folder)
             return True
         except Exception:
             return False
@@ -336,15 +331,25 @@ class Folder(MP_Node, BaseProjectModel):
 
     def disable_folder_and_children(self) -> None:
         """ Disable the actual folder an his children"""
+        from ..models import File
+
         folder = Folder.get_element_by_id_like_queryset(self.pk)
         folder.update(is_active=False)
         self.get_descendants().update(is_active=False)
+        for folder in self.get_descendants():
+            id_files_in_folder = list(folder.get_all_files().values_list('pk', flat=True))
+            File.disabled_many_files(id_files_in_folder)
 
     def activate_folder_and_children(self) -> None:
         """ Activate the actual folder an his children"""
+        from ..models import File
+
         folder = Folder.get_element_by_id_like_queryset(self.pk)
         folder.update(is_active=True)
         self.get_descendants().update(is_active=True)
+        for folder in self.get_descendants():
+            id_files_in_folder = list(folder.get_all_files().values_list('pk', flat=True))
+            File.recover_many_files(id_files_in_folder)
 
     def get_all_files(self) -> QuerySet['File']:
         """ Return all files associated to the actual folder """

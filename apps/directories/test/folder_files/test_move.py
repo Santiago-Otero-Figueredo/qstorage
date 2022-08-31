@@ -13,7 +13,7 @@ URL_MOVE_FOLDER = 'directories:folders-move-folder'
 
 
 @override_settings(MEDIA_ROOT=settings.MEDIA_ROOT_TEST)
-class FileMoveTest(FileCRUDAPITest):
+class FolderFileMoveTest(FileCRUDAPITest):
 
     def test_01_move_folder_with_files(self):
         """ Testing to move a folder with files to another folder
@@ -96,3 +96,49 @@ class FileMoveTest(FileCRUDAPITest):
         self.assertTrue(os.path.exists(media_file_1080_ti_path))
         self.assertTrue(os.path.exists(media_file_2060_ti_path))
         self.assertTrue(os.path.exists(media_file_3060_ti_path))
+
+    def test_02_move_folder_with_files(self):
+        """ Testing to move a folder with files to another folder
+            new structure:
+                ...
+                |- Peripherals
+                    |- Keyboard.png
+                    |- Mouse.png
+                    |- Headphones.png
+                    |- Storage
+                        |- HDD.png
+                        |- MV_2.png
+                ...
+        """
+
+        payload = {
+            'folders_to_move': [self.storage.pk],
+            'new_parent_folder': self.peripherals.pk
+        }
+
+        url_move_folder = reverse(URL_MOVE_FOLDER)
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        response = self.client.post(url_move_folder, payload)
+
+        new_parent_folder = Folder.get_by_id(self.peripherals.pk)
+
+        folder_storage_moved = Folder.get_by_id(self.storage.pk)
+        file_hdd = File.get_by_id(self.f_hdd.pk)
+        file_mv_2 = File.get_by_id(self.f_mv_2.pk)
+
+        media_path_storage = f'{settings.MEDIA_ROOT_TEST}{new_parent_folder.get_path_folder()}/{folder_storage_moved.name}'
+        media_path_hdd = f'{media_path_storage}/{file_hdd.name}'
+        media_path_mv_2 = f'{media_path_storage}/{file_mv_2.name}'
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Validation of change path in database
+        self.assertEqual(folder_storage_moved.get_parent().name, new_parent_folder.name)
+        # Validation of changes in inheritance database
+        self.assertTrue(folder_storage_moved.is_descendant_of(new_parent_folder))
+        self.assertTrue(file_hdd.parent_folder.is_child_of(new_parent_folder))
+        self.assertTrue(file_mv_2.parent_folder.is_child_of(new_parent_folder))
+        # Validation of folders move in media folder
+        self.assertTrue(os.path.exists(media_path_storage))
+        self.assertTrue(os.path.exists(media_path_hdd))
+        self.assertTrue(os.path.exists(media_path_mv_2))
